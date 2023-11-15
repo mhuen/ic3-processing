@@ -480,7 +480,7 @@ def main(
     if data_folder is None:
         default = f"/data/user/{getpass.getuser()}/ic3_processing/data/"
         data_folder = click.prompt(
-            "Please enter the dir were the files should be stored:",
+            "Please enter the directory where the files should be stored:",
             default=default,
         )
     data_folder = os.path.abspath(data_folder)
@@ -492,7 +492,8 @@ def main(
         if processing_scratch is None:
             default = "/scratch/{}/ic3_processing".format(getpass.getuser())
             processing_scratch = click.prompt(
-                "Please enter a processing scratch:", default=default
+                "Please enter a processing scratch:",
+                default=default,
             )
         config["processing_scratch"] = os.path.abspath(processing_scratch)
 

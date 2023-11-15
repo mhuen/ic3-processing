@@ -14,7 +14,7 @@ except ImportError as e:
     warnings.warn(
         (
             f"Could not import ic3_processing or icecube: {e}.",
-            "Continuing without optional support i3 IO.",
+            "Continuing without optional support for i3 IO.",
         ),
         ImportWarning,
     )
@@ -56,7 +56,6 @@ def add_run_folder_vars(cfg: dict, run_number: int) -> dict:
         cfg["folder_offset"] + cfg["run_number"] // n_per_folder
     )
     cfg["folder_pattern"] = cfg["folder_pattern"].format(**cfg)
-    cfg["run_folder"] = cfg["folder_pattern"].format(**cfg)
 
     return cfg
 
@@ -118,7 +117,9 @@ def setup_job_and_config(cfg, run_number, scratch, verbose=True):
     cfg = add_run_folder_vars(cfg=cfg, run_number=run_number)
 
     # get input files
-    if isinstance(cfg["in_file_pattern"], str):
+    if cfg["in_file_pattern"] is None:
+        infile_patterns = []
+    elif isinstance(cfg["in_file_pattern"], str):
         infile_patterns = [cfg["in_file_pattern"]]
     else:
         infile_patterns = cfg["in_file_pattern"]
@@ -144,7 +145,7 @@ def setup_job_and_config(cfg, run_number, scratch, verbose=True):
 
     # count how many input files we have found
     context["n_files"] = len(infiles)
-    if context["n_files"] < 1:
+    if context["n_files"] < 1 and cfg["in_file_pattern"] is not None:
         raise IOError(
             "No input files found for the patterns:\n\t {}".format(
                 "\n\t".join(infile_patterns)
@@ -213,8 +214,6 @@ def setup_job_and_config(cfg, run_number, scratch, verbose=True):
         outfile = os.path.join(
             cfg["data_folder"], cfg["out_dir_pattern"].format(**cfg)
         )
-        if not cfg["merge_files"]:
-            outfile = os.path.join(outfile, cfg["run_folder"].format(**cfg))
         outfile = os.path.join(outfile, cfg["out_file_pattern"].format(**cfg))
 
     return cfg, infiles, outfile, context

@@ -1,7 +1,7 @@
 """
 Helper-functions for file utilities
 """
-from icecube import dataio, icetray
+from icecube import icetray
 
 
 class PartialFileProcessing(icetray.I3ConditionalModule):

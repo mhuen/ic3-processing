@@ -84,7 +84,7 @@ class JobLogBook(object):
     def __store__(self):
         path = os.path.join(self.log_dir, "resume.txt")
         binary_set = set(self.__binaries)
-        finished_jobs = set([l[0] for l in self.log])
+        finished_jobs = set([log_i[0] for log_i in self.log])
         unfinished_jobs = binary_set.difference(finished_jobs)
         with open(path, "w") as f:
             for job, exit_code in self.log:

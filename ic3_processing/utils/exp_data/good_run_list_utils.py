@@ -179,7 +179,6 @@ def read_from_gaps(
             print("{:08d}.i3".format(fnum))
             i3file = [f for f in i3filelist if "{:08d}.i3".format(fnum) in f]
             i3file = dataio.I3File(i3file[0], "r")
-            time = np.inf
             while i3file.more():
                 frame = i3file.pop_frame()
                 if "I3EventHeader" not in frame:
@@ -200,7 +199,7 @@ def read_from_gaps(
                     lines = file.readlines()
 
             # decode
-            lines = [l.decode() for l in lines]
+            lines = [line.decode() for line in lines]
 
             # check last line
             last_line = lines[-1].split()

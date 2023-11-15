@@ -23,7 +23,7 @@ def file_is_readable(file_name):
     try:
         f = dataio.I3File(file_name)
         while f.more():
-            fr = f.pop_frame()
+            f.pop_frame()
             frame_counter += 1
         f.close()
     except Exception as e:
@@ -33,7 +33,7 @@ def file_is_readable(file_name):
 
 
 def filter_corrupted_files(
-    infiles: List[str], vebose: bool = True
+    infiles: List[str], verbose: bool = True
 ) -> List[str]:
     """Select non-corrupted files from a given list
 
@@ -41,7 +41,7 @@ def filter_corrupted_files(
     ----------
     infiles : List[str]
         The list of input files.
-    vebose : bool, optional
+    verbose : bool, optional
         If True, additional information is printed to the console.
 
     Returns
