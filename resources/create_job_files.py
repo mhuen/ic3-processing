@@ -96,13 +96,15 @@ def get_version() -> str:
     return version
 
 
-def input_exists(param_dict: dict) -> bool:
+def input_exists(param_dict: dict, run_number: int) -> bool:
     """Check if input files exist for an individual job config.
 
     Parameters
     ----------
     param_dict : dict
         The configuration dictionary that defines the individual job.
+    run_number : int
+        The current run number.
 
     Returns
     -------
@@ -127,7 +129,7 @@ def input_exists(param_dict: dict) -> bool:
     try:
         _, _, _, context = setup.setup_job_and_config(
             cfg=param_dict_cpy,
-            run_number=run_num,
+            run_number=run_number,
             scratch=False,
             verbose=False,
         )
@@ -137,7 +139,6 @@ def input_exists(param_dict: dict) -> bool:
     except IOError:
         # no input files found, therefore skip this job
         input_exists = False
-        continue
 
     # no input files found, therefore skip this job
     if context["n_files"] < 1:
@@ -294,7 +295,9 @@ def write_job_files(config, check_existing=False, check_existing_input=False):
             completed_run_folders = []
             for run_num in runs:
                 # add output directory for this specific run number
-                cfg = setup.add_run_folder_vars(cfg=cfg, run_number=run_number)
+                param_dict = setup.add_run_folder_vars(
+                    cfg=param_dict, run_number=run_num
+                )
 
                 # fill final output file string
                 final_out = unescape(
@@ -372,7 +375,10 @@ def write_job_files(config, check_existing=False, check_existing_input=False):
                         continue
 
                 # only create job file if input files exist
-                if check_existing_input and not input_exists(param_dict):
+                if check_existing_input and not input_exists(
+                    param_dict=param_dict,
+                    run_number=run_num,
+                ):
                     continue
 
                 output_folder = os.path.dirname(final_out)
