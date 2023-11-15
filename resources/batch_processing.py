@@ -103,9 +103,7 @@ def write_config_file(config, scratch_folder):
     return config_file
 
 
-def write_option_file(
-    config, script_files, run_numbers, job_file, scratch_folder
-):
+def write_option_file(config, script_files, job_file, scratch_folder):
     process_name = "{}_{}".format(
         config["script_name"].replace(".py", ""),
         config["config_base_name"].replace(".yaml", ""),
@@ -116,8 +114,6 @@ def write_option_file(
         os.makedirs(log_dir_base)
 
     lines = []
-    # for i, script_i in zip(run_numbers, script_files):
-    # ## will crash, because run_numbers can start from 0 again
     for i, script_i in enumerate(script_files):
         # create subdirectories for log files
         if config["merge_files"]:
@@ -144,16 +140,14 @@ def write_option_file(
     return option_file
 
 
-def create_dagman_files(
-    config,
-    script_files,
-    run_numbers,
-    scratch_folder,
-):
+def create_dagman_files(config, script_files, scratch_folder):
     config_file = write_config_file(config, scratch_folder)
     onejob_file = write_onejob_file(config, scratch_folder)
     options_file = write_option_file(
-        config, script_files, run_numbers, onejob_file, scratch_folder
+        config,
+        script_files,
+        onejob_file,
+        scratch_folder,
     )
     cmd = "condor_submit_dag -config {} -notification Complete {}".format(
         config_file, options_file
@@ -165,21 +159,11 @@ def create_dagman_files(
     os.chmod(run_script, st.st_mode | stat.S_IEXEC)
 
 
-def create_pbs_files(
-    config,
-    script_files,
-    run_numbers,
-    scratch_folder,
-):
+def create_pbs_files(config, script_files, scratch_folder):
     raise NotImplementedError("PBS file submission not yet supported!")
 
 
-def create_osg_files(
-    config,
-    script_files,
-    run_numbers,
-    scratch_folder,
-):
+def create_osg_files(config, script_files, scratch_folder):
     raise NotImplementedError("OSG file submission not yet supported!")
 
 

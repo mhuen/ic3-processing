@@ -147,14 +147,141 @@ def input_exists(param_dict: dict, run_number: int) -> bool:
     return input_exists
 
 
-def write_job_files(config, check_existing=False, check_existing_input=False):
+def write_yaml_sub_steps(config: dict, yaml_dir: str | os.PathLike) -> list:
+    """Write yaml configuration files for each defined sub-process
+
+    Parameters
+    ----------
+    config : dict
+        Description
+    yaml_dir : str | os.PathLike
+        Description
+
+    Returns
+    -------
+    list
+        A list of templates for each processing step.
+    """
+
+    # create directory for yaml and its sub-steps
+    if os.path.exists(yaml_dir):
+        raise IOError(f"Directory {yaml_dir} already exists!")
+    os.makedirs(yaml_dir)
+
+    # go through each defined intermediate step and write
+    # individual yaml configuration files for each of these steps
+    templates = []
+    configs = []
+    n_steps = len(config["processing_steps"])
+    for i, cfg_i in enumerate(config["processing_steps"]):
+        # update parameters defined globally with parameters for
+        # this specific processing step
+        cfg_step = SafeDict()
+        cfg_step.update(config)
+        cfg_step.update(cfg_i)
+
+        # check if CPU or GPU
+        if cfg_step["resources"]["gpus"] == 0:
+            cfg_step["python_user_base"] = cfg_step["python_user_base_cpu"]
+
+        elif cfg_step["resources"]["gpus"] == 1:
+            cfg_step["python_user_base"] = cfg_step["python_user_base_gpu"]
+
+        else:
+            raise ValueError("More than 1 GPU is currently not supported!")
+
+        # modify inputs to previous intermediate outputs
+        if i > 0:
+            cfg_step["in_file_pattern"] = (
+                cfg_step["out_file_pattern"] + f"_step{i-1:04d}"
+            )
+
+        # modify output pattern to an intermediate output file
+        if i < len(n_steps) - 1:
+            cfg_step["out_file_pattern"] = (
+                cfg_step["out_file_pattern"] + f"_step{i:04d}"
+            )
+
+        # save config
+        cfg_step["yaml_copy"] = os.path.join(
+            yaml_dir,
+            cfg_step["config_base_name"] + f"_step_{i:04d}",
+        )
+        configs.append(cfg_step)
+        with open(cfg_step["yaml_copy"], "w") as yaml_file:
+            yaml.dump(dict(cfg_step), yaml_file, default_flow_style=False)
+
+        # read template for this processing step
+        with open(config["job_template"]) as f:
+            templates.append(f.read())
+
+    return templates
+
+
+def write_job_shell_scripts(param_dict: dict, templates: list) -> str:
+    """Write executable shell scripts for each step
+
+    Parameters
+    ----------
+    param_dict : dict
+        The configuration options. These must already be finalized
+        with all variable parameters fixed.
+    templates : list
+        The list of job file templates for each processing step.
+    """
+
+    base = "job_{}".format(os.path.basename(param_dict["final_out"]))
+    out_dir = os.path.join(param_dict["jobs_output"], base)
+
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+
+    # create job files for each processing step
+    wrapper_content = ""
+    for i, template in enumerate(templates):
+        # point to specific configuration file for this processing step
+        param_dict["yaml_copy"] = os.path.join(
+            param_dict["yaml_dir"],
+            param_dict["config_base_name"] + f"_step_{i:04d}",
+        )
+
+        # fill job template with configuration settings
+        file_config = string.Formatter().vformat(template, (), param_dict)
+
+        script_base = f"job_{base}_step_{i:04d}.sh"
+        script_path = os.path.join(out_dir, script_base)
+
+        # write to file
+        with open(script_path, "w") as f:
+            f.write(file_config)
+        st = os.stat(script_path)
+        os.chmod(script_path, st.st_mode | stat.S_IEXEC)
+
+        # keep track of commands to call in wrapper job shell script
+        wrapper_content += f"./{base}/script_base\n"
+        wrapper_content += f"./{base}/script_base\n"
+
+    # write wrapper shell script that consecutively calls each processing step
+    script_path = os.path.join(param_dict["jobs_output"], f"job_{base}.sh")
+
+    with open(script_path, "w") as f:
+        f.write(wrapper_content)
+    st = os.stat(script_path)
+    os.chmod(script_path, st.st_mode | stat.S_IEXEC)
+
+    return script_path
+
+
+def write_job_files(
+    config, check_existing_output=False, check_existing_input=False
+):
     """Write job files
 
     Parameters
     ----------
     config : dict
         The configuration settings.
-    check_existing : bool, optional
+    check_existing_output : bool, optional
         If true, job files will only be written if the output file does not
         exist yet.
     check_existing_input : bool, optional
@@ -172,11 +299,7 @@ def write_job_files(config, check_existing=False, check_existing_input=False):
     ValueError
         Description
     """
-    with open(config["job_template"]) as f:
-        template = f.read()
-
     scripts = []
-    run_numbers = []
 
     # go through all datasets defined in config
     for dataset in config["datasets"]:
@@ -228,18 +351,6 @@ def write_job_files(config, check_existing=False, check_existing_input=False):
                     r for r in runs if r not in param_dict["runs_to_ignore"]
                 ]
 
-            # check if CPU or GPU
-            if param_dict["resources"]["gpus"] == 0:
-                param_dict["python_user_base"] = param_dict[
-                    "python_user_base_cpu"
-                ]
-            elif param_dict["resources"]["gpus"] == 1:
-                param_dict["python_user_base"] = param_dict[
-                    "python_user_base_gpu"
-                ]
-            else:
-                raise ValueError("More than 1 GPU is currently not supported!")
-
             # create processing, log, and base out folder
             param_dict["processing_folder"] = unescape(
                 os.path.join(
@@ -248,28 +359,10 @@ def write_job_files(config, check_existing=False, check_existing_input=False):
                 )
             )
 
-            jobs_output_base = os.path.join(
-                param_dict["processing_folder"], "jobs"
-            )
-
-            if not os.path.isdir(jobs_output_base):
-                os.makedirs(jobs_output_base)
-
-            log_dir_base = os.path.join(
-                param_dict["processing_folder"], "logs"
-            )
-
-            if not os.path.isdir(log_dir_base):
-                os.makedirs(log_dir_base)
-
             # update config and save individual yaml config for each dataset
-            param_dict["scratchfile_pattern"] = unescape(
-                os.path.basename(param_dict["out_file_pattern"])
-            )
-
             found_unused_file_name = False
             while not found_unused_file_name:
-                filled_yaml = unescape(
+                filled_yaml_dir = unescape(
                     "{config_base}_{cycler_counter:04d}".format(
                         config_base=os.path.join(
                             param_dict["processing_folder"],
@@ -278,77 +371,56 @@ def write_job_files(config, check_existing=False, check_existing_input=False):
                         cycler_counter=cycler_counter,
                     )
                 )
-                if os.path.exists(filled_yaml):
+                if os.path.exists(filled_yaml_dir):
                     # there is already a config file here, so increase counter
                     cycler_counter += 1
                 else:
                     found_unused_file_name = True
 
             cycler_counter += 1
-            param_dict["yaml_copy"] = filled_yaml
-            with open(param_dict["yaml_copy"], "w") as yaml_copy:
-                yaml.dump(
-                    dict(param_dict), yaml_copy, default_flow_style=False
-                )
+
+            # create directory and write yaml configuration files for each
+            # of the defined sub-processing steps
+            param_dict["yaml_dir"] = filled_yaml_dir
+            templates = write_yaml_sub_steps(param_dict, filled_yaml_dir)
 
             # iterate through runs
-            completed_run_folders = []
             for run_num in runs:
                 # add output directory for this specific run number
                 param_dict = setup.add_run_folder_vars(
                     cfg=param_dict, run_number=run_num
                 )
 
+                # create sub directory for logs
+                param_dict["log_dir"] = os.path.join(
+                    param_dict["processing_folder"],
+                    "logs",
+                    param_dict["folder_pattern"].format(**param_dict),
+                )
+
+                if not os.path.isdir(param_dict["log_dir"]):
+                    os.makedirs(param_dict["log_dir"])
+
+                # create sub directory for jobs
+                param_dict["jobs_output"] = os.path.join(
+                    param_dict["processing_folder"],
+                    "jobs",
+                    param_dict["folder_pattern"].format(**param_dict),
+                )
+                if not os.path.isdir(param_dict["jobs_output"]):
+                    os.makedirs(param_dict["jobs_output"])
+
                 # fill final output file string
-                final_out = unescape(
+                param_dict["final_out"] = unescape(
                     os.path.join(
                         param_dict["data_folder"],
                         param_dict["out_dir_pattern"].format(**param_dict),
+                        param_dict["folder_pattern"].format(**param_dict),
+                        param_dict["out_file_pattern"].format(**param_dict),
                     )
                 )
 
-                if param_dict["merge_files"]:
-                    param_dict["log_dir"] = log_dir_base
-                    jobs_output = jobs_output_base
-                else:
-                    # create sub directory for logs
-                    param_dict["log_dir"] = os.path.join(
-                        log_dir_base,
-                        param_dict["run_folder"].format(**param_dict),
-                    )
-
-                    if not os.path.isdir(param_dict["log_dir"]):
-                        os.makedirs(param_dict["log_dir"])
-
-                    # create sub directory for jobs
-                    jobs_output = os.path.join(
-                        jobs_output_base,
-                        param_dict["run_folder"].format(**param_dict),
-                    )
-                    if not os.path.isdir(jobs_output):
-                        os.makedirs(jobs_output)
-
-                    final_out = os.path.join(
-                        final_out,
-                        param_dict["run_folder"].format(**param_dict),
-                    )
-
-                final_out = os.path.join(
-                    final_out,
-                    param_dict["out_file_pattern"].format(**param_dict),
-                )
-
-                param_dict["final_out"] = unescape(final_out)
-
-                if param_dict["merge_files"]:
-                    if param_dict["run_folder"] in completed_run_folders:
-                        # skip if the folder has already been taken care of
-                        continue
-                    else:
-                        # remember which folders have been taken care of
-                        completed_run_folders.append(param_dict["run_folder"])
-
-                if check_existing:
+                if check_existing_output:
                     # Assume files already exist
                     already_exists = True
 
@@ -381,25 +453,20 @@ def write_job_files(config, check_existing=False, check_existing_input=False):
                 ):
                     continue
 
-                output_folder = os.path.dirname(final_out)
-                if not os.path.isdir(output_folder):
-                    os.makedirs(output_folder)
-                param_dict["output_folder"] = output_folder
-                file_config = string.Formatter().vformat(
-                    template, (), param_dict
+                # create directory for final output files
+                param_dict["output_folder"] = os.path.dirname(
+                    param_dict["final_out"]
                 )
-                script_name = "job_{final_out_base}.sh".format(
-                    final_out_base=os.path.basename(param_dict["final_out"]),
-                    **param_dict,
-                )
-                script_path = os.path.join(jobs_output, script_name)
-                with open(script_path, "w") as f:
-                    f.write(file_config)
-                st = os.stat(script_path)
-                os.chmod(script_path, st.st_mode | stat.S_IEXEC)
+                if not os.path.isdir(param_dict["output_folder"]):
+                    os.makedirs(param_dict["output_folder"])
+
+                # write executable job shell scripts
+                script_path = write_job_shell_scripts(param_dict, templates)
+
+                # keep track of generated jobs
                 scripts.append(script_path)
-                run_numbers.append(run_num)
-    return scripts, run_numbers
+
+    return scripts
 
 
 @click.command()
@@ -455,7 +522,9 @@ def main(
     with open(config_file, "r") as stream:
         config = SafeDict(yaml.full_load(stream))
     config["script_folder"] = SCRIPT_FOLDER
-    config["config_base_name"] = os.path.basename(os.path.join(config_file))
+    config["config_base_name"] = os.path.basename(config_file).replace(
+        ".yaml", ""
+    )
 
     # add ic3_processing version as a config variable
     config["ic3_processing_version"] = get_version()
@@ -497,8 +566,10 @@ def main(
             )
         config["processing_scratch"] = os.path.abspath(processing_scratch)
 
-    script_files, run_numbers = write_job_files(
-        config, check_existing=resume, check_existing_input=check_input
+    script_files = write_job_files(
+        config,
+        check_existing_output=resume,
+        check_existing_input=check_input,
     )
 
     if dagman or pbs or osg:
@@ -515,15 +586,15 @@ def main(
 
         if dagman:
             batch_processing.create_dagman_files(
-                config, script_files, run_numbers, scratch_folder
+                config, script_files, scratch_folder
             )
         if pbs:
             batch_processing.create_pbs_files(
-                config, script_files, run_numbers, scratch_folder
+                config, script_files, scratch_folder
             )
         if osg:
             batch_processing.create_osg_files(
-                config, script_files, run_numbers, scratch_folder
+                config, script_files, scratch_folder
             )
 
 

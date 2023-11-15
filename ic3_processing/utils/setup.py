@@ -206,15 +206,17 @@ def setup_job_and_config(cfg, run_number, scratch, verbose=True):
 
     # get output file destination
     if scratch:
-        outfile = cfg["scratchfile_pattern"].format(**cfg)
+        outfile = os.path.basename(cfg["out_file_pattern"].format(**cfg))
         scratch_output_folder = os.path.dirname(outfile)
         if scratch_output_folder and not os.path.isdir(scratch_output_folder):
             os.makedirs(scratch_output_folder)
     else:
         outfile = os.path.join(
-            cfg["data_folder"], cfg["out_dir_pattern"].format(**cfg)
+            cfg["data_folder"],
+            cfg["out_dir_pattern"].format(**cfg),
+            cfg["folder_pattern"],
+            cfg["out_file_pattern"].format(**cfg),
         )
-        outfile = os.path.join(outfile, cfg["out_file_pattern"].format(**cfg))
 
     return cfg, infiles, outfile, context
 
