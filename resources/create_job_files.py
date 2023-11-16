@@ -11,13 +11,14 @@ import getpass
 import itertools
 from copy import deepcopy
 
-from typing import List
+from typing import List, Union
 
 import batch_processing
 
 
+from ic3_processing.utils import setup
+
 try:
-    from ic3_processing.utils.setup import setup
     from ic3_processing.utils.exp_data.good_run_list_utils import (
         get_exp_dataset_jobs,
     )
@@ -129,7 +130,7 @@ def input_exists(param_dict: dict, run_number: int) -> bool:
     # get input files
     input_exists = True
     try:
-        _, _, _, context = setup.setup_job_and_config(
+        _, context = setup.setup_job_and_config(
             cfg=param_dict_cpy,
             run_number=run_number,
             scratch=False,
@@ -151,7 +152,7 @@ def input_exists(param_dict: dict, run_number: int) -> bool:
 
 def get_yaml_and_pyton_paths(
     config: dict, step: int
-) -> List[str | os.PathLike]:
+) -> List[Union[str, os.PathLike]]:
     """Get paths to the yaml and python files for the specified sub-step
 
     Parameters
@@ -180,6 +181,44 @@ def get_yaml_and_pyton_paths(
     return python_script_path, yaml_config_path
 
 
+def get_config_for_step(config: dict, step: int) -> dict:
+    """Get the config for a given processing step number
+
+    Parameters
+    ----------
+    config : dict
+        The main configuration that describes each of the sub-steps.
+        Must also contain the `sub_process_dir` of type str | os.PathLike
+        which defines the directory to which the yaml configuration
+        and python scripts will be written to.
+    step : int
+        The processing step
+
+    Returns
+    -------
+    dict
+        The config for this processing step
+    """
+
+    # update parameters defined globally with parameters for
+    # this specific processing step
+    cfg_step = SafeDict()
+    cfg_step.update(config)
+    cfg_step.update(config["processing_steps"][step])
+
+    # check if CPU or GPU
+    if cfg_step["resources"]["gpus"] == 0:
+        cfg_step["python_user_base"] = cfg_step["python_user_base_cpu"]
+
+    elif cfg_step["resources"]["gpus"] == 1:
+        cfg_step["python_user_base"] = cfg_step["python_user_base_gpu"]
+
+    else:
+        raise ValueError("More than 1 GPU is currently not supported!")
+
+    return cfg_step
+
+
 def write_sub_steps(config: dict) -> List:
     """Write yaml and python files for each defined processing step
 
@@ -198,30 +237,18 @@ def write_sub_steps(config: dict) -> List:
     """
 
     # create directory for yaml and its sub-steps
-    if os.path.exists(config["yaml_dir"]):
-        raise IOError(f"Directory {config['yaml_dir']} already exists!")
-    os.makedirs(config["yaml_dir"])
+    if os.path.exists(config["sub_process_dir"]):
+        raise IOError(f"Directory {config['sub_process_dir']} already exists!")
+    os.makedirs(config["sub_process_dir"])
 
     # go through each defined intermediate step and write
     # individual yaml configuration files for each of these steps
     templates = []
     n_steps = len(config["processing_steps"])
-    for i, cfg_i in enumerate(config["processing_steps"]):
+    for i in range(len(config["processing_steps"])):
         # update parameters defined globally with parameters for
         # this specific processing step
-        cfg_step = SafeDict()
-        cfg_step.update(config)
-        cfg_step.update(cfg_i)
-
-        # check if CPU or GPU
-        if cfg_step["resources"]["gpus"] == 0:
-            cfg_step["python_user_base"] = cfg_step["python_user_base_cpu"]
-
-        elif cfg_step["resources"]["gpus"] == 1:
-            cfg_step["python_user_base"] = cfg_step["python_user_base_gpu"]
-
-        else:
-            raise ValueError("More than 1 GPU is currently not supported!")
+        cfg_step = get_config_for_step(config, step=i)
 
         # modify inputs to previous intermediate outputs
         if i > 0:
@@ -230,7 +257,7 @@ def write_sub_steps(config: dict) -> List:
             )
 
         # modify output pattern to an intermediate output file
-        if i < len(n_steps) - 1:
+        if i < n_steps - 1:
             cfg_step["out_file_pattern"] = (
                 cfg_step["out_file_pattern"] + f"_step{i:04d}"
             )
@@ -247,9 +274,9 @@ def write_sub_steps(config: dict) -> List:
         # add shebang lines defining python and cvmfs version
         python_script = (
             "#!/bin/sh /cvmfs/icecube.opensciencegrid.org/"
-            rf"{cfg_step['cvmfs_python']}/icetray-start\n"
-            rf"#METAPROJECT {cfg_step['icetray_metaproject']}\n"
-        )
+            f"{cfg_step['cvmfs_python']}/icetray-start\n"
+            f"#METAPROJECT {cfg_step['icetray_metaproject']}\n"
+        ) + python_script
 
         # get output paths for yaml and python files
         python_path, yaml_path = get_yaml_and_pyton_paths(cfg_step, step=i)
@@ -257,6 +284,8 @@ def write_sub_steps(config: dict) -> List:
         # write python script
         with open(python_path, "w") as f:
             f.write(python_script)
+        st = os.stat(python_path)
+        os.chmod(python_path, st.st_mode | stat.S_IEXEC)
 
         # save config
         with open(yaml_path, "w") as yaml_file:
@@ -281,22 +310,26 @@ def write_job_shell_scripts(param_dict: dict, templates: List) -> str:
         The list of job file templates for each processing step.
     """
 
-    base = "job_{}".format(os.path.basename(param_dict["final_out"]))
-    out_dir = os.path.join(param_dict["jobs_output"], base)
+    base = os.path.basename(param_dict["final_out"])
+    out_dir = os.path.join(param_dict["jobs_output"], "steps_" + base)
 
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
     # create job files for each processing step
-    wrapper_content = ""
+    wrapper_content = f"OUT_DIR={out_dir}\n\n"
     for i, template in enumerate(templates):
+        # update parameters defined globally with parameters for
+        # this specific processing step
+        cfg_step = get_config_for_step(param_dict, step=i)
+
         # point to specific yaml and python files for this processing step
-        python_path, yaml_path = get_yaml_and_pyton_paths(param_dict, step=i)
-        param_dict["yaml_path"] = yaml_path
-        param_dict["python_path"] = python_path
+        python_path, yaml_path = get_yaml_and_pyton_paths(cfg_step, step=i)
+        cfg_step["yaml_path"] = yaml_path
+        cfg_step["python_path"] = python_path
 
         # fill job template with configuration settings
-        file_config = string.Formatter().vformat(template, (), param_dict)
+        file_config = string.Formatter().vformat(template, (), cfg_step)
 
         script_base = f"job_{base}_step_{i:04d}.sh"
         script_path = os.path.join(out_dir, script_base)
@@ -308,8 +341,9 @@ def write_job_shell_scripts(param_dict: dict, templates: List) -> str:
         os.chmod(script_path, st.st_mode | stat.S_IEXEC)
 
         # keep track of commands to call in wrapper job shell script
-        wrapper_content += f"./{base}/script_base\n"
-        wrapper_content += f"./{base}/script_base\n"
+        wrapper_content += 'eval "${OUT_DIR}/' + f'{script_base}" && \n'
+
+    wrapper_content += "echo Successfully processed all steps!\n"
 
     # write wrapper shell script that consecutively calls each processing step
     script_path = os.path.join(param_dict["jobs_output"], f"job_{base}.sh")
@@ -416,7 +450,7 @@ def write_job_files(
                     "{config_base}_{cycler_counter:04d}".format(
                         config_base=os.path.join(
                             param_dict["processing_folder"],
-                            param_dict["config_base_name"],
+                            "processing_steps",
                         ),
                         cycler_counter=cycler_counter,
                     )

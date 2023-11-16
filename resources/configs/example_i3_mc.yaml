@@ -112,8 +112,8 @@ datasets:
 # -------------------------------------------------------------
 job_template: job_templates/cvmfs_python.sh
 script_name: general_i3_processing.py
-python_user_base_cpu: /data/ana/PointSource/DNNCascade/utils/virtualenvs/version-0.0/py3-v4.1.1_tensorflow2.3
-python_user_base_gpu: /data/ana/PointSource/DNNCascade/utils/virtualenvs/version-0.0/py3-v4.1.1_tensorflow2.3
+python_user_base_cpu: /data/user/mhuennefeld/DNN_reco/virtualenvs/tensorflow_gpu_py3-v4.2.1
+python_user_base_gpu: /data/user/mhuennefeld/DNN_reco/virtualenvs/tensorflow_gpu_py3-v4.2.1
 cuda_home: /data/ana/PointSource/DNNCascade/utils/cuda/cuda-10.1
 
 # add optional additions to the LD_LIBRARY_PATH
@@ -135,26 +135,56 @@ set_env_vars_from_python: {
 # Any options defined in these nested dictionaries will supersede the
 # ones defined globally in this config.
 processing_steps: [
+
+    # -----------------
+    # Processing step 1
+    # -----------------
     {
-        cvmfs_python: py3-v4.1.1
-        icetray_metaproject: combo/V01-00-00
+        # Define environment for this processing step
+        cvmfs_python: py3-v4.2.1,
+        icetray_metaproject: icetray/v1.5.1,
 
         # define a list of tray segments to run
         tray_segments: [
             {
-                ModuleClass: '',
-                ModuleKwargs: {},
-            }
-        ]
-    }
+                # compute weights
+                ModuleClass: 'ic3_labels.weights.segments.WeightEvents',
+                ModuleKwargs: {
+                    'infiles': context-->ic3_processing.infiles,
+                    'dataset_type': '{data_type}',
+                    'dataset_n_files': context-->ic3_processing.n_files,
+                    'dataset_n_events_per_run': -1,
+                    'dataset_number': '{dataset_number}',
+                    'check_n_files': ['corsika', 'nugen'],
+                    'add_mceq_weights': False,
+                    'mceq_kwargs': {
+                        'cache_file': '/data/ana/PointSource/DNNCascade/utils/cache/mceq.cache',
+                    },
+                },
+            },
+        ],
+    },
+
+    # -----------------
+    # Processing step 2
+    # -----------------
     {
-        cvmfs_python: py3-v4.2.1
-        icetray_metaproject: combo/V01-00-00
+        # Define environment for this processing step
+        cvmfs_python: py3-v4.2.1,
+        icetray_metaproject: icetray/v1.5.1,
+
+        # keep track of number of merged files and update weights if they exist
+        merge_weights: True,
 
         # define a list of tray segments to run
         tray_segments: [
-        ]
-    }
+            {
+                # delete the key "I3MCTree" from the i3 file
+                ModuleClass: 'Delete',
+                ModuleKwargs: {Keys: "I3MCTree"},
+            },
+        ],
+    },
 ]
 
 #--------------------
@@ -167,7 +197,7 @@ write_i3_kwargs: {
 
     # only write these stream types,
     # i.e ['Q', 'P', 'I', 'S', 'M', 'm', 'W', 'X']
-    'i3_streams': ['Q', 'P', 'I', 'S', 'M', 'm', 'W', 'X']
+    'i3_streams': ['Q', 'P', 'I', 'S', 'M', 'm', 'W', 'X'],
 }
 
 # write output as hdf5 files via the I3HDFWriter
@@ -175,7 +205,7 @@ write_hdf5: False
 write_hdf5_kwargs: {
 
     # sub event streams to write
-    'SubEventStreams': ['InIceSplit']
+    'SubEventStreams': ['InIceSplit'],
 
     # HDF keys to write (in addition to the ones in tray.context['HDF_keys'])
     # Note: added tray segments should add outputs that should be written

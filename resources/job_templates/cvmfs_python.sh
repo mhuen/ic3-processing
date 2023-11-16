@@ -46,7 +46,7 @@ then
     {python_path} {yaml_path} {run_number} --no-scratch
     JOB_RC=$?
     echo 'Job finished with Exit Code: ' $JOB_RC
-    if [ $JOB_RC -ne 0 ] && [ $KEEP_CRASHED_FILES -eq 0 ] ; then
+    if [ $JOB_RC -ne 0 ] && [ "$KEEP_CRASHED_FILES" = "False" ] ; then
         echo 'Deleting partially processed file! ' $FINAL_OUT
 
         # Clean Up
@@ -72,7 +72,7 @@ else
     {python_path} {yaml_path} {run_number} --scratch
     JOB_RC=$?
     echo 'Job finished with Exit Code: ' $JOB_RC
-    if [ $JOB_RC -eq 0 ] || [ $KEEP_CRASHED_FILES -eq 1 ]; then
+    if [ $JOB_RC -eq 0 ] || [ "$KEEP_CRASHED_FILES" = "True" ]; then
         if [ "$WRITE_HDF5" = "True" ]; then
             cp {final_out_scratch}.hdf5 {output_folder}
         fi

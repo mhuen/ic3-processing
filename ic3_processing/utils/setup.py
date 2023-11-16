@@ -78,10 +78,6 @@ def setup_job_and_config(cfg, run_number, scratch, verbose=True):
     -------
     dict
         The dictionary with settings.
-    List[str]
-        The input file paths.
-    str
-        The output file path.
     dict
         Additional output values.
 
@@ -218,7 +214,10 @@ def setup_job_and_config(cfg, run_number, scratch, verbose=True):
             cfg["out_file_pattern"].format(**cfg),
         )
 
-    return cfg, infiles, outfile, context
+    context["infiles"] = infiles
+    context["outfile"] = outfile
+
+    return cfg, context
 
 
 def load_class(full_class_string):
