@@ -1,13 +1,12 @@
 #!/bin/bash
 
-# Gather
+# Gather keys
 FINAL_OUT={final_out}
 KEEP_CRASHED_FILES={keep_crashed_files}
 WRITE_HDF5={write_hdf5}
 WRITE_I3={write_i3}
 CUDA_HOME={cuda_home}
 LD_LIBRARY_PATH_PREPENDS={ld_library_path_prepends}
-
 CVMFS_PYTHON={cvmfs_python}
 
 
@@ -44,13 +43,23 @@ echo 'Starting process for output file: '$FINAL_OUT
 if [ -z ${PBS_JOBID} ] && [ -z ${_CONDOR_SCRATCH_DIR} ]
 then
     echo 'Running Script w/o temporary scratch'
-    {script_folder}/scripts/{script_name} {yaml_copy} {run_number} --no-scratch
-    ICETRAY_RC=$?
-    echo 'IceTray finished with Exit Code: ' $ICETRAY_RC
-    if [ $ICETRAY_RC -ne 0 ] && [ $KEEP_CRASHED_FILES -eq 0 ] ; then
+    {python_path} {yaml_path} {run_number} --no-scratch
+    JOB_RC=$?
+    echo 'Job finished with Exit Code: ' $JOB_RC
+    if [ $JOB_RC -ne 0 ] && [ $KEEP_CRASHED_FILES -eq 0 ] ; then
         echo 'Deleting partially processed file! ' $FINAL_OUT
-        rm ${FINAL_OUT}.i3.bz2
-        rm ${FINAL_OUT}.hdf5
+
+        # Clean Up
+        if [ "$WRITE_HDF5" = "True" ]; then
+            rm ${FINAL_OUT}.hdf5
+        fi
+        if [ "$WRITE_I3" = "True" ]; then
+            rm ${FINAL_OUT}.i3.bz2
+        fi
+        if [ -f "$FINAL_OUT" ]; then
+            rm $FINAL_OUT
+        fi
+
     fi
 else
     echo 'Running Script w/ temporary scratch'
@@ -60,24 +69,30 @@ else
     else
         cd ${_CONDOR_SCRATCH_DIR}
     fi
-    {script_folder}/scripts/{script_name} {yaml_copy} {run_number} --scratch
-    ICETRAY_RC=$?
-    echo 'IceTray finished with Exit Code: ' $ICETRAY_RC
-    if [ $ICETRAY_RC -eq 0 ] || [ $KEEP_CRASHED_FILES -eq 1 ]; then
+    {python_path} {yaml_path} {run_number} --scratch
+    JOB_RC=$?
+    echo 'Job finished with Exit Code: ' $JOB_RC
+    if [ $JOB_RC -eq 0 ] || [ $KEEP_CRASHED_FILES -eq 1 ]; then
         if [ "$WRITE_HDF5" = "True" ]; then
-            cp *.hdf5 {output_folder}
+            cp {final_out_scratch}.hdf5 {output_folder}
         fi
         if [ "$WRITE_I3" = "True" ]; then
-            cp *.i3.bz2 {output_folder}
+            cp {final_out_scratch}.i3.bz2 {output_folder}
+        fi
+        if [ -f "$FINAL_OUT" ]; then
+            cp {final_out_scratch} {output_folder}
         fi
     fi
 
     # Clean Up
     if [ "$WRITE_HDF5" = "True" ]; then
-        rm *.hdf5
+        rm {final_out_scratch}.hdf5
     fi
     if [ "$WRITE_I3" = "True" ]; then
-        rm *.i3.bz2
+        rm {final_out_scratch}.i3.bz2
+    fi
+    if [ -f "$FINAL_OUT" ]; then
+        rm {final_out_scratch}
     fi
 fi
-exit $ICETRAY_RC
+exit $JOB_RC

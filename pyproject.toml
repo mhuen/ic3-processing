@@ -15,10 +15,12 @@ maintainers = [
 ]
 requires-python = ">=3.7"
 
-dependencies = ["numpy",
-                "pyyaml",
-                "click",
-                "pre-commit"]
+dependencies = [
+    "numpy",
+    "pyyaml",
+    "click",
+    "ic3_labels @ git+ssh://git@github.com/icecube/ic3-labels",
+]
 
 classifiers = [
     "Development Status :: 4 - Beta",

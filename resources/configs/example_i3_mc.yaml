@@ -32,24 +32,10 @@
 #
 
 #------------------------------
-# General
+# General job submission config
 #------------------------------
-cvmfs_python: py3-v4.1.1
-job_template: job_templates/cvmfs_python.sh
-script_name: general_i3_processing.py
-python_user_base_cpu: /data/ana/PointSource/DNNCascade/utils/virtualenvs/version-0.0/py3-v4.1.1_tensorflow2.3
-python_user_base_gpu: /data/ana/PointSource/DNNCascade/utils/virtualenvs/version-0.0/py3-v4.1.1_tensorflow2.3
-cuda_home: /data/ana/PointSource/DNNCascade/utils/cuda/cuda-10.1
-ld_library_path_prepends: '{ld_library_path_prepends}'
-
-# Defines environment variables that are set from python
-set_env_vars_from_python: {
-    'TF_DETERMINISTIC_OPS': '1',
-}
 
 keep_crashed_files: False
-write_i3: True
-write_hdf5: False
 
 resources:
         # If gpus == 1 this will be run on a GPU with
@@ -121,20 +107,78 @@ datasets:
         year: 'IC86.2020'
 
 
-#------------------------------
-# HDF writer specific options
-#------------------------------
+# -------------------------------------------------------------
+# Define environment information shared across processing steps
+# -------------------------------------------------------------
+job_template: job_templates/cvmfs_python.sh
+script_name: general_i3_processing.py
+python_user_base_cpu: /data/ana/PointSource/DNNCascade/utils/virtualenvs/version-0.0/py3-v4.1.1_tensorflow2.3
+python_user_base_gpu: /data/ana/PointSource/DNNCascade/utils/virtualenvs/version-0.0/py3-v4.1.1_tensorflow2.3
+cuda_home: /data/ana/PointSource/DNNCascade/utils/cuda/cuda-10.1
 
-# clean up
-# drop_orphan_m_frames: True
+# add optional additions to the LD_LIBRARY_PATH
+# Note: '{ld_library_path_prepends}' is the default which does not add anything
+ld_library_path_prepends: '{ld_library_path_prepends}'
 
-# only write these stream types, i.e ['Q', 'P', 'I', 'S', 'M', 'm', 'W', 'X']
-write_i3_streams: ['Q', 'P', 'I', 'S', 'M', 'm', 'W', 'X']
+# Defines environment variables that are set from python
+set_env_vars_from_python: {
+    'TF_DETERMINISTIC_OPS': '1',
+}
 
-# filter out event streams prior to processing
-remove_streams: ['NullSplit']
+#-----------------------------------------------
+# Define I3Traysegments for each processing step
+#-----------------------------------------------
 
-# sub event streams to write
-HDF_SubEventStreams: ['InIceSplit']
-# hdf keys to write if write_hdf5 == True
-HDF_keys: []
+# a list of processing steps. Each processing step contains
+# information on the python and cvmfs environment as well as
+# a list of I3TraySegments/Modules that will be added to the I3Tray.
+# Any options defined in these nested dictionaries will supersede the
+# ones defined globally in this config.
+processing_steps: [
+    {
+        cvmfs_python: py3-v4.1.1
+        icetray_metaproject: combo/V01-00-00
+
+        # define a list of tray segments to run
+        tray_segments: [
+            {
+                ModuleClass: '',
+                ModuleKwargs: {},
+            }
+        ]
+    }
+    {
+        cvmfs_python: py3-v4.2.1
+        icetray_metaproject: combo/V01-00-00
+
+        # define a list of tray segments to run
+        tray_segments: [
+        ]
+    }
+]
+
+#--------------------
+# File output options
+#--------------------
+
+# write output as i3 files via the I3Writer
+write_i3: True
+write_i3_kwargs: {
+
+    # only write these stream types,
+    # i.e ['Q', 'P', 'I', 'S', 'M', 'm', 'W', 'X']
+    'i3_streams': ['Q', 'P', 'I', 'S', 'M', 'm', 'W', 'X']
+}
+
+# write output as hdf5 files via the I3HDFWriter
+write_hdf5: False
+write_hdf5_kwargs: {
+
+    # sub event streams to write
+    'SubEventStreams': ['InIceSplit']
+
+    # HDF keys to write (in addition to the ones in tray.context['HDF_keys'])
+    # Note: added tray segments should add outputs that should be written
+    # to hdf5 to the tray context.
+    'Keys': [],
+}

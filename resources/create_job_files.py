@@ -11,6 +11,8 @@ import getpass
 import itertools
 from copy import deepcopy
 
+from typing import List
+
 import batch_processing
 
 
@@ -147,15 +149,47 @@ def input_exists(param_dict: dict, run_number: int) -> bool:
     return input_exists
 
 
-def write_yaml_sub_steps(config: dict, yaml_dir: str | os.PathLike) -> list:
-    """Write yaml configuration files for each defined sub-process
+def get_yaml_and_pyton_paths(
+    config: dict, step: int
+) -> List[str | os.PathLike]:
+    """Get paths to the yaml and python files for the specified sub-step
 
     Parameters
     ----------
     config : dict
-        Description
-    yaml_dir : str | os.PathLike
-        Description
+        The main configuration that describes each of the sub-steps.
+        Must also contain the `sub_process_dir` of type str | os.PathLike
+        which defines the directory to which the yaml configuration
+        and python scripts will be written to.
+    step : int
+        The processing step (0-indexed).
+
+    Returns
+    -------
+    List[str | os.PathLike]
+        The path to the python and yaml file for the specified processing step.
+    """
+    python_script_path = os.path.join(
+        config["sub_process_dir"],
+        config["script_name"].replace(".py", "") + f"_step_{step:04d}.py",
+    )
+    yaml_config_path = os.path.join(
+        config["sub_process_dir"],
+        config["config_base_name"] + f"_step_{step:04d}.yaml",
+    )
+    return python_script_path, yaml_config_path
+
+
+def write_sub_steps(config: dict) -> List:
+    """Write yaml and python files for each defined processing step
+
+    Parameters
+    ----------
+    config : dict
+        The main configuration that describes each of the sub-steps.
+        Must also contain the `sub_process_dir` of type str | os.PathLike
+        which defines the directory to which the yaml configuration
+        and python scripts will be written to.
 
     Returns
     -------
@@ -164,14 +198,13 @@ def write_yaml_sub_steps(config: dict, yaml_dir: str | os.PathLike) -> list:
     """
 
     # create directory for yaml and its sub-steps
-    if os.path.exists(yaml_dir):
-        raise IOError(f"Directory {yaml_dir} already exists!")
-    os.makedirs(yaml_dir)
+    if os.path.exists(config["yaml_dir"]):
+        raise IOError(f"Directory {config['yaml_dir']} already exists!")
+    os.makedirs(config["yaml_dir"])
 
     # go through each defined intermediate step and write
     # individual yaml configuration files for each of these steps
     templates = []
-    configs = []
     n_steps = len(config["processing_steps"])
     for i, cfg_i in enumerate(config["processing_steps"]):
         # update parameters defined globally with parameters for
@@ -202,23 +235,41 @@ def write_yaml_sub_steps(config: dict, yaml_dir: str | os.PathLike) -> list:
                 cfg_step["out_file_pattern"] + f"_step{i:04d}"
             )
 
-        # save config
-        cfg_step["yaml_copy"] = os.path.join(
-            yaml_dir,
-            cfg_step["config_base_name"] + f"_step_{i:04d}",
+        # read python script for this step
+        script_path = os.path.join(
+            cfg_step["script_folder"],
+            "scripts",
+            cfg_step["script_name"],
         )
-        configs.append(cfg_step)
-        with open(cfg_step["yaml_copy"], "w") as yaml_file:
+        with open(script_path) as f:
+            python_script = f.read()
+
+        # add shebang lines defining python and cvmfs version
+        python_script = (
+            "#!/bin/sh /cvmfs/icecube.opensciencegrid.org/"
+            rf"{cfg_step['cvmfs_python']}/icetray-start\n"
+            rf"#METAPROJECT {cfg_step['icetray_metaproject']}\n"
+        )
+
+        # get output paths for yaml and python files
+        python_path, yaml_path = get_yaml_and_pyton_paths(cfg_step, step=i)
+
+        # write python script
+        with open(python_path, "w") as f:
+            f.write(python_script)
+
+        # save config
+        with open(yaml_path, "w") as yaml_file:
             yaml.dump(dict(cfg_step), yaml_file, default_flow_style=False)
 
         # read template for this processing step
-        with open(config["job_template"]) as f:
+        with open(cfg_step["job_template"]) as f:
             templates.append(f.read())
 
     return templates
 
 
-def write_job_shell_scripts(param_dict: dict, templates: list) -> str:
+def write_job_shell_scripts(param_dict: dict, templates: List) -> str:
     """Write executable shell scripts for each step
 
     Parameters
@@ -239,11 +290,10 @@ def write_job_shell_scripts(param_dict: dict, templates: list) -> str:
     # create job files for each processing step
     wrapper_content = ""
     for i, template in enumerate(templates):
-        # point to specific configuration file for this processing step
-        param_dict["yaml_copy"] = os.path.join(
-            param_dict["yaml_dir"],
-            param_dict["config_base_name"] + f"_step_{i:04d}",
-        )
+        # point to specific yaml and python files for this processing step
+        python_path, yaml_path = get_yaml_and_pyton_paths(param_dict, step=i)
+        param_dict["yaml_path"] = yaml_path
+        param_dict["python_path"] = python_path
 
         # fill job template with configuration settings
         file_config = string.Formatter().vformat(template, (), param_dict)
@@ -362,7 +412,7 @@ def write_job_files(
             # update config and save individual yaml config for each dataset
             found_unused_file_name = False
             while not found_unused_file_name:
-                filled_yaml_dir = unescape(
+                sub_process_dir = unescape(
                     "{config_base}_{cycler_counter:04d}".format(
                         config_base=os.path.join(
                             param_dict["processing_folder"],
@@ -371,7 +421,7 @@ def write_job_files(
                         cycler_counter=cycler_counter,
                     )
                 )
-                if os.path.exists(filled_yaml_dir):
+                if os.path.exists(sub_process_dir):
                     # there is already a config file here, so increase counter
                     cycler_counter += 1
                 else:
@@ -381,8 +431,8 @@ def write_job_files(
 
             # create directory and write yaml configuration files for each
             # of the defined sub-processing steps
-            param_dict["yaml_dir"] = filled_yaml_dir
-            templates = write_yaml_sub_steps(param_dict, filled_yaml_dir)
+            param_dict["sub_process_dir"] = sub_process_dir
+            templates = write_sub_steps(param_dict)
 
             # iterate through runs
             for run_num in runs:
@@ -418,6 +468,9 @@ def write_job_files(
                         param_dict["folder_pattern"].format(**param_dict),
                         param_dict["out_file_pattern"].format(**param_dict),
                     )
+                )
+                param_dict["final_out_scratch"] = os.path.basename(
+                    param_dict["final_out"]
                 )
 
                 if check_existing_output:

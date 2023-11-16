@@ -63,17 +63,18 @@ def collect_exp_livetime_data(file_names, cfg, key="ExpLivetime"):
     return cfg
 
 
-def write_exp_livetime_data(tray, cfg, name="write_exp_livetime_data"):
+@icetray.traysegment
+def write_exp_livetime_data(tray, name, cfg):
     """Write Experimental Livetime Data to I3Frame
 
     Parameters
     ----------
     tray : icetray
         The icetray
+    name : str
+        Name of this module.
     cfg : dict
         The configuration settings.
-    name : str, optional
-        Name of this module.
     """
     if "exp_dataset_livetime" in cfg:
         tray.AddModule(
