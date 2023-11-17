@@ -3,6 +3,7 @@
 import os
 import stat
 import string
+import textwrap
 import warnings
 
 import click
@@ -181,6 +182,37 @@ def get_yaml_and_pyton_paths(
     return python_script_path, yaml_config_path
 
 
+def get_final_out_path(param_dict: dict) -> dict:
+    """Get the final output path
+
+    Parameters
+    ----------
+    param_dict : dict
+        The parameter config. Must already have the run number
+        and folder filled in.
+
+    Returns
+    -------
+    dict
+        The updated parameter config with the path to the final output
+        file.
+    """
+    # fill final output file string
+    param_dict["final_out"] = unescape(
+        os.path.join(
+            param_dict["data_folder"],
+            param_dict["out_dir_pattern"].format(**param_dict),
+            param_dict["folder_pattern"].format(**param_dict),
+            param_dict["out_file_pattern"].format(**param_dict),
+        )
+    )
+    param_dict["final_out_scratch"] = os.path.basename(param_dict["final_out"])
+
+    param_dict["output_folder"] = os.path.dirname(param_dict["final_out"])
+
+    return param_dict
+
+
 def get_config_for_step(config: dict, step: int) -> dict:
     """Get the config for a given processing step number
 
@@ -216,6 +248,28 @@ def get_config_for_step(config: dict, step: int) -> dict:
     else:
         raise ValueError("More than 1 GPU is currently not supported!")
 
+    # modify inputs to previous intermediate outputs
+    if step > 0:
+        cfg_step["in_file_pattern"] = os.path.join(
+            "./temp_step_files",
+            cfg_step["out_dir_pattern"].format(**cfg_step),
+            cfg_step["folder_pattern"],
+            cfg_step["out_file_pattern"]
+            + f"_step{step - 1:04d}."
+            + cfg_step["i3_ending"],
+        )
+
+    # modify output pattern to an intermediate output file
+    if step < len(config["processing_steps"]) - 1:
+        cfg_step["out_file_pattern"] = (
+            cfg_step["out_file_pattern"] + f"_step{step:04d}"
+        )
+        cfg_step["data_folder"] = "./temp_step_files"
+
+    # fill final output file string if run_number has already been filled
+    if "run_number" in cfg_step:
+        cfg_step = get_final_out_path(cfg_step)
+
     return cfg_step
 
 
@@ -244,23 +298,10 @@ def write_sub_steps(config: dict) -> List:
     # go through each defined intermediate step and write
     # individual yaml configuration files for each of these steps
     templates = []
-    n_steps = len(config["processing_steps"])
     for i in range(len(config["processing_steps"])):
         # update parameters defined globally with parameters for
         # this specific processing step
         cfg_step = get_config_for_step(config, step=i)
-
-        # modify inputs to previous intermediate outputs
-        if i > 0:
-            cfg_step["in_file_pattern"] = (
-                cfg_step["out_file_pattern"] + f"_step{i-1:04d}"
-            )
-
-        # modify output pattern to an intermediate output file
-        if i < n_steps - 1:
-            cfg_step["out_file_pattern"] = (
-                cfg_step["out_file_pattern"] + f"_step{i:04d}"
-            )
 
         # read python script for this step
         script_path = os.path.join(
@@ -316,8 +357,27 @@ def write_job_shell_scripts(param_dict: dict, templates: List) -> str:
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
+    temp_files = []
+
     # create job files for each processing step
-    wrapper_content = f"OUT_DIR={out_dir}\n\n"
+
+    # SECONDS is a bash special variable that returns the seconds since set.
+    wrapper_content = textwrap.dedent(
+        """
+        # Shell-script wrapper to execute indidividual steps
+
+        # Start Timer
+        # Note: SECONDS is a bash special variable that returns the seconds
+        # since it was set.
+        SECONDS=0
+
+        # Create array and index counter to keep track of time per-step
+        declare -a times
+        times[0]=$SECONDS
+        step_counter=1
+        """
+    )
+    wrapper_content += f"OUT_DIR={out_dir}\n\n"
     for i, template in enumerate(templates):
         # update parameters defined globally with parameters for
         # this specific processing step
@@ -327,6 +387,10 @@ def write_job_shell_scripts(param_dict: dict, templates: List) -> str:
         python_path, yaml_path = get_yaml_and_pyton_paths(cfg_step, step=i)
         cfg_step["yaml_path"] = yaml_path
         cfg_step["python_path"] = python_path
+
+        # keep track of temporary files:
+        if i < len(templates) - 1:
+            temp_files.append(cfg_step["final_out"])
 
         # fill job template with configuration settings
         file_config = string.Formatter().vformat(template, (), cfg_step)
@@ -341,9 +405,55 @@ def write_job_shell_scripts(param_dict: dict, templates: List) -> str:
         os.chmod(script_path, st.st_mode | stat.S_IEXEC)
 
         # keep track of commands to call in wrapper job shell script
+        wrapper_content += f"echo && echo 'Starting step {i:03}'\n"
         wrapper_content += 'eval "${OUT_DIR}/' + f'{script_base}" && \n'
+        wrapper_content += "times[$step_counter]=$SECONDS &&\n"
+        wrapper_content += "((step_counter++)) &&\n\n"
 
-    wrapper_content += "echo Successfully processed all steps!\n"
+    wrapper_content += textwrap.dedent(
+        """
+        echo &&
+        echo --------------------------------- &&
+        echo Successfully processed all steps! &&
+        echo ---------------------------------
+
+        RET=$?
+        if [ $RET -ne 0 ] ; then
+           echo
+           echo '---------------'
+           echo 'Error occurred!'
+           echo '---------------'
+           echo
+        fi
+
+        echo
+        echo 'Runtime for each processed step:'
+
+        for (( i=1; i<$step_counter; i++ ))
+        do
+          printf "    %-13s --> " "Step $i"
+          printf "%+8u s\n" $(( ${times[$i]} - ${times[$i-1]}))
+        done
+        printf "    %13s --> %+8u s\n" "Total runtime" $SECONDS
+        echo
+
+        echo Cleaning up intermediate files ...
+        """
+    )
+    for temp_file in temp_files:
+        wrapper_content += f"echo '   ... removing {temp_file}*'\n"
+        wrapper_content += f"rm {temp_file}*\n"
+
+    # remove directory if empty
+    wrapper_content += "echo '   ... checking if temp_step_files is empty'\n"
+    wrapper_content += "lines=$(find temp_step_files/ -type f | wc -l)\n"
+    wrapper_content += "if [ $lines -eq 0 ]; then\n"
+    wrapper_content += "   echo '   ... removing directory temp_step_files'\n"
+    wrapper_content += "   rm -r temp_step_files\n"
+    wrapper_content += "else\n"
+    wrapper_content += "   echo '   ...    Not deleting directory as it still "
+    wrapper_content += "contains files.'\n"
+    wrapper_content += "fi\n"
 
     # write wrapper shell script that consecutively calls each processing step
     script_path = os.path.join(param_dict["jobs_output"], f"job_{base}.sh")
@@ -495,17 +605,7 @@ def write_job_files(
                     os.makedirs(param_dict["jobs_output"])
 
                 # fill final output file string
-                param_dict["final_out"] = unescape(
-                    os.path.join(
-                        param_dict["data_folder"],
-                        param_dict["out_dir_pattern"].format(**param_dict),
-                        param_dict["folder_pattern"].format(**param_dict),
-                        param_dict["out_file_pattern"].format(**param_dict),
-                    )
-                )
-                param_dict["final_out_scratch"] = os.path.basename(
-                    param_dict["final_out"]
-                )
+                param_dict = get_final_out_path(param_dict)
 
                 if check_existing_output:
                     # Assume files already exist
@@ -541,9 +641,6 @@ def write_job_files(
                     continue
 
                 # create directory for final output files
-                param_dict["output_folder"] = os.path.dirname(
-                    param_dict["final_out"]
-                )
                 if not os.path.isdir(param_dict["output_folder"]):
                     os.makedirs(param_dict["output_folder"])
 

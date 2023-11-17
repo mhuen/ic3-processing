@@ -2,6 +2,7 @@
 
 # Gather keys
 FINAL_OUT={final_out}
+I3_ENDING={i3_ending}
 KEEP_CRASHED_FILES={keep_crashed_files}
 WRITE_HDF5={write_hdf5}
 WRITE_I3={write_i3}
@@ -77,7 +78,7 @@ else
             cp {final_out_scratch}.hdf5 {output_folder}
         fi
         if [ "$WRITE_I3" = "True" ]; then
-            cp {final_out_scratch}.i3.bz2 {output_folder}
+            cp {final_out_scratch}.${I3_ENDING} {output_folder}
         fi
         if [ -f "$FINAL_OUT" ]; then
             cp {final_out_scratch} {output_folder}
@@ -89,7 +90,7 @@ else
         rm {final_out_scratch}.hdf5
     fi
     if [ "$WRITE_I3" = "True" ]; then
-        rm {final_out_scratch}.i3.bz2
+        rm {final_out_scratch}.${I3_ENDING}
     fi
     if [ -f "$FINAL_OUT" ]; then
         rm {final_out_scratch}

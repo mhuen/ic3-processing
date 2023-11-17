@@ -93,7 +93,7 @@ def main(cfg, run_number, scratch):
         tray.AddModule(
             UpdateMergedWeights,
             "UpdateMergedWeights",
-            TotalNFiles=context["ic3_processing"]["total_n_files"],
+            TotalNFiles=tray.context["ic3_processing"]["total_n_files"],
         )
 
     # --------------------------------------------------

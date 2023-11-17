@@ -181,7 +181,7 @@ processing_steps: [
             {
                 # delete the key "I3MCTree" from the i3 file
                 ModuleClass: 'Delete',
-                ModuleKwargs: {Keys: "I3MCTree"},
+                ModuleKwargs: {Keys: [I3MCPESeriesMapWithoutNoise]},
             },
         ],
     },

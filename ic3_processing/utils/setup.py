@@ -41,6 +41,11 @@ def add_run_folder_vars(cfg: dict, run_number: int) -> dict:
     ValueError
         If the specified number of output files in a directory is not allowed.
     """
+
+    # Update config with run number specific settings if provided
+    if "run_number_settings" in cfg:
+        cfg.update(cfg["run_number_settings"][run_number])
+
     n_per_folder = cfg["n_jobs_per_folder"]
 
     # sanity check: only powers of 10 make sense here and usually it should be
@@ -105,10 +110,6 @@ def setup_job_and_config(cfg, run_number, scratch, verbose=True):
             print("    Setting {} to {}".format(key, value))
         print("------------------------------------------------\n")
 
-    # Update config with run number specific settings if provided
-    if "run_number_settings" in cfg:
-        cfg.update(cfg["run_number_settings"][run_number])
-
     # add output directory for this specific run number
     cfg = add_run_folder_vars(cfg=cfg, run_number=run_number)
 
@@ -126,7 +127,9 @@ def setup_job_and_config(cfg, run_number, scratch, verbose=True):
         infiles_i = glob.glob(pattern.format(**cfg))
 
         if len(infiles_i) == 0:
-            raise IOError(f"No input files found for pattern: {pattern}!")
+            raise IOError(
+                f"No input files found for pattern: {pattern.format(**cfg)}!"
+            )
 
         infiles.extend(infiles_i)
 
@@ -202,10 +205,7 @@ def setup_job_and_config(cfg, run_number, scratch, verbose=True):
 
     # get output file destination
     if scratch:
-        outfile = os.path.basename(cfg["out_file_pattern"].format(**cfg))
-        scratch_output_folder = os.path.dirname(outfile)
-        if scratch_output_folder and not os.path.isdir(scratch_output_folder):
-            os.makedirs(scratch_output_folder)
+        outfile = os.path.basename(cfg["final"].format(**cfg))
     else:
         outfile = os.path.join(
             cfg["data_folder"],
@@ -213,6 +213,11 @@ def setup_job_and_config(cfg, run_number, scratch, verbose=True):
             cfg["folder_pattern"],
             cfg["out_file_pattern"].format(**cfg),
         )
+
+    output_dir = os.path.dirname(outfile)
+    if output_dir and not os.path.isdir(output_dir):
+        print(f"Creating output directory: \n    {output_dir}")
+        os.makedirs(output_dir)
 
     context["infiles"] = infiles
     context["outfile"] = outfile
