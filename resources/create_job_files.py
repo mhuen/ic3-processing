@@ -405,7 +405,11 @@ def write_job_shell_scripts(param_dict: dict, templates: List) -> str:
         os.chmod(script_path, st.st_mode | stat.S_IEXEC)
 
         # keep track of commands to call in wrapper job shell script
-        wrapper_content += f"echo && echo 'Starting step {i:03}'\n"
+        wrapper_content += "echo &&\n"
+        wrapper_content += "echo '=========================' &&\n"
+        wrapper_content += f"echo '==> Starting step {i:03} <==' &&\n"
+        wrapper_content += "echo '=========================' &&\n"
+        wrapper_content += "echo &&\n"
         wrapper_content += 'eval "${OUT_DIR}/' + f'{script_base}" && \n'
         wrapper_content += "times[$step_counter]=$SECONDS &&\n"
         wrapper_content += "((step_counter++)) &&\n\n"
@@ -413,16 +417,16 @@ def write_job_shell_scripts(param_dict: dict, templates: List) -> str:
     wrapper_content += textwrap.dedent(
         """
         echo &&
-        echo --------------------------------- &&
-        echo Successfully processed all steps! &&
-        echo ---------------------------------
+        echo '=========================================' &&
+        echo '==> Successfully processed all steps! <==' &&
+        echo '=========================================' &&
 
         RET=$?
         if [ $RET -ne 0 ] ; then
            echo
-           echo '---------------'
-           echo 'Error occurred!'
-           echo '---------------'
+           echo '======================='
+           echo '==> Error occurred! <=='
+           echo '======================='
            echo
         fi
 
