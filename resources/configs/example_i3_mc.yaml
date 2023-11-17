@@ -39,9 +39,9 @@ keep_crashed_files: False
 
 resources:
         # If gpus == 1 this will be run on a GPU with
-        gpus: 1
+        gpus: 0
         cpus: 1
-        memory: 3gb
+        memory: 2gb
         # has_ssse3: True
         # has_avx2: True
 

@@ -1,0 +1,331 @@
+# Example config file to process Level 2 exp i3-files
+# This config will process exp data from runs of June 30th of years 2011-2020.
+# The processing in this example will only take events passing the EHEFilter
+#
+# Directory structure:
+#       At prompt of create_job_files.py a data_folder
+#       will be asked for in which the files are to be
+#       saved
+#
+#   Files are then stored as:
+#
+#   data_folder:
+#       processing:
+#           out_dir_pattern:
+#               jobs: (job files are stored here)
+#               logs: (log files are stored here)
+#
+#       out_dir_pattern:
+#
+#               run_folder:
+#                       out_file_pattern + '.' + i3_ending
+#                       out_file_pattern + '.hdf5'
+#
+#
+#               Where the run folder is given by:
+#               run_folder = folder_pattern.format(
+#                 folder_num = folder_offset + run_number // n_jobs_per_folder
+#                 folder_num_pre_offset = run_number // n_jobs_per_folder
+#               )
+#
+#       The following variables are computed and can be used in input/output patterns
+#       folder_num = folder_offset + run_number // n_jobs_per_folder
+#       folder_num_pre_offset = run_number // n_jobs_per_folder
+#
+
+#------------------------------
+# General job submission config
+#------------------------------
+
+keep_crashed_files: False
+
+resources:
+        # If gpus == 1 this will be run on a GPU with
+        gpus: 0
+        cpus: 1
+        memory: 2gb
+        # has_ssse3: True
+        # has_avx2: True
+
+dagman_max_jobs: 5000
+dagman_submits_interval: 500
+dagman_scan_interval: 1
+dagman_submit_delay: 0
+
+# If true, the input files will first be checked for corruption.
+# Note that this will take a while, since each input file has to be
+# iterated through. You generally only want to set this to true if you
+# are merging a number of input files of which some are known to be corrupt.
+exclude_corrupted_input_files: False
+
+#------------------------------
+# Define Datasets to process
+#------------------------------
+
+#------
+# common settings shared by all datasets
+#------
+i3_ending: 'i3.zst'
+out_dir_pattern: '{data_type}/{season}/'
+out_file_pattern: '{data_type}_{season}_{run_number:08d}'
+folder_pattern: 'Run{run_number:08d}'
+folder_offset: 0
+gcd: DUMMY_FAKE_GCD
+
+runs_to_ignore: [
+    # Standard Candle Runs
+    117442, 120937, 120944, 125910, 125911,
+]
+
+# list of (column, operator, value) [pass if: column op value]
+# operators must be one of: '!=', '==', '>', '<', '>=', '<=', 'in'
+exp_dataset_filter: [
+    ['Good_i3', '==', 1],
+    ['ActiveStrings', '==', 86],
+    ['ActiveInIce', '>=', 5030],
+]
+data_type: 'exp'
+
+cycler:
+    # we don't actually use the cycler...
+    dummy_cycler: ['dummy_value']
+
+# specify a list of int or leave empty to process all
+# exp_dataset_years:  # We are letting the script find potential years
+exp_dataset_months: [6]
+exp_dataset_days: [30]
+
+# by default, warnings are printed if runs found via file glob do not
+# exist in provided GRLs. Since we are splitting per season, this will
+# happen a lot. Therefore we will suppress warning:
+exp_data_warn_missing: False
+
+#------
+
+
+datasets:
+
+    # -----------------
+    # Experimental Data
+    # -----------------
+    Exp_level2pass2a_IC86_2011:
+        in_file_pattern: '/data/exp/IceCube/{year}/filtered/level2pass2a/{month:02d}{day:02d}/Run{run_number:08d}/Level2pass2_IC86.{year}_data_Run{run_number:08d}_Subrun00000000_XXXXXXXX.i3.zst'
+
+        # This needs to use the {year} field if automatic year selection is used
+        exp_dataset_run_glob: '/data/exp/IceCube/{year}/filtered/level2pass2a/{month:02d}{day:02d}/Run????????'
+
+        exp_dataset_grl_paths: [
+            '/data/exp/IceCube/2011/filtered/level2pass2a/IC86_2011_GoodRunInfo.txt',
+        ]
+        season: 'IC86_2011'
+
+    Exp_level2pass2a_IC86_2012:
+        in_file_pattern: '/data/exp/IceCube/{year}/filtered/level2pass2a/{month:02d}{day:02d}/Run{run_number:08d}/Level2pass2_IC86.{year}_data_Run{run_number:08d}_Subrun00000000_XXXXXXXX.i3.zst'
+
+        # This needs to use the {year} field if automatic year selection is used
+        exp_dataset_run_glob: '/data/exp/IceCube/{year}/filtered/level2pass2a/{month:02d}{day:02d}/Run????????'
+
+        exp_dataset_grl_paths: [
+            '/data/exp/IceCube/2012/filtered/level2pass2a/IC86_2012_GoodRunInfo.txt',
+        ]
+        season: 'IC86_2012'
+
+    Exp_level2pass2a_IC86_2013:
+        in_file_pattern: '/data/exp/IceCube/{year}/filtered/level2pass2a/{month:02d}{day:02d}/Run{run_number:08d}/Level2pass2_IC86.{year}_data_Run{run_number:08d}_Subrun00000000_XXXXXXXX.i3.zst'
+
+        # This needs to use the {year} field if automatic year selection is used
+        exp_dataset_run_glob: '/data/exp/IceCube/{year}/filtered/level2pass2a/{month:02d}{day:02d}/Run????????'
+
+        exp_dataset_grl_paths: [
+            '/data/exp/IceCube/2013/filtered/level2pass2a/IC86_2013_GoodRunInfo.txt',
+        ]
+        season: 'IC86_2013'
+
+    Exp_level2pass2a_IC86_2014:
+        in_file_pattern: '/data/exp/IceCube/{year}/filtered/level2pass2a/{month:02d}{day:02d}/Run{run_number:08d}/Level2pass2_IC86.{year}_data_Run{run_number:08d}_Subrun00000000_XXXXXXXX.i3.zst'
+
+        # This needs to use the {year} field if automatic year selection is used
+        exp_dataset_run_glob: '/data/exp/IceCube/{year}/filtered/level2pass2a/{month:02d}{day:02d}/Run????????'
+
+        exp_dataset_grl_paths: [
+            '/data/exp/IceCube/2014/filtered/level2pass2a/IC86_2014_GoodRunInfo.txt',
+        ]
+        season: 'IC86_2014'
+
+    Exp_level2pass2a_IC86_2015:
+        in_file_pattern: '/data/exp/IceCube/{year}/filtered/level2pass2a/{month:02d}{day:02d}/Run{run_number:08d}/Level2pass2_IC86.{year}_data_Run{run_number:08d}_Subrun00000000_XXXXXXXX.i3.zst'
+
+        # This needs to use the {year} field if automatic year selection is used
+        exp_dataset_run_glob: '/data/exp/IceCube/{year}/filtered/level2pass2a/{month:02d}{day:02d}/Run????????'
+
+        exp_dataset_grl_paths: [
+            '/data/exp/IceCube/2015/filtered/level2pass2a/IC86_2015_GoodRunInfo.txt',
+        ]
+        season: 'IC86_2015'
+
+    Exp_level2pass2a_IC86_2016:
+        in_file_pattern: '/data/exp/IceCube/{year}/filtered/level2pass2a/{month:02d}{day:02d}/Run{run_number:08d}/Level2pass2_IC86.{year}_data_Run{run_number:08d}_Subrun00000000_XXXXXXXX.i3.zst'
+
+        # This needs to use the {year} field if automatic year selection is used
+        exp_dataset_run_glob: '/data/exp/IceCube/{year}/filtered/level2pass2a/{month:02d}{day:02d}/Run????????'
+
+        exp_dataset_grl_paths: [
+            '/data/exp/IceCube/2016/filtered/level2pass2a/IC86_2016_GoodRunInfo.txt',
+        ]
+        season: 'IC86_2016'
+
+
+    Exp_level2_IC86_2017:
+        in_file_pattern: '/data/exp/IceCube/{year}/filtered/level2/{month:02d}{day:02d}/Run{run_number:08d}/Level2pass2_IC86.{year}_data_Run{run_number:08d}_Subrun00000000_XXXXXXXX.i3.zst'
+
+        # This needs to use the {year} field if automatic year selection is used
+        exp_dataset_run_glob: '/data/exp/IceCube/{year}/filtered/level2/{month:02d}{day:02d}/Run????????'
+
+        exp_dataset_grl_paths: [
+            '/data/exp/IceCube/2017/filtered/level2/IC86_2017_GoodRunInfo.txt',
+        ]
+        season: 'IC86_2017'
+
+        # keyword arguments that are passed on to `get_run_info` method
+        get_run_info_kwargs: {
+            gaps_tar_bases: [
+                '/data/exp/IceCube/{year}/filtered/level2/{date}/Run{run:08d}_GapsTxt.tar',
+                '/data/exp/IceCube/{year}/filtered/level2/{date}/Run{run:08d}/Run{run:08d}_GapsTxt.tar',
+            ],
+            gaps_txt_base: '/data/exp/IceCube/{year}/filtered/level2/{date}/Run{run:08d}/*_gaps.txt',
+        }
+
+    Exp_level2_IC86_2018:
+        in_file_pattern: '/data/exp/IceCube/{year}/filtered/level2/{month:02d}{day:02d}/Run{run_number:08d}/Level2pass2_IC86.{year}_data_Run{run_number:08d}_Subrun00000000_XXXXXXXX.i3.zst'
+
+        # This needs to use the {year} field if automatic year selection is used
+        exp_dataset_run_glob: '/data/exp/IceCube/{year}/filtered/level2/{month:02d}{day:02d}/Run????????'
+
+        exp_dataset_grl_paths: [
+            '/data/exp/IceCube/2018/filtered/level2/IC86_2018_GoodRunInfo.txt',
+        ]
+        season: 'IC86_2018'
+
+        # keyword arguments that are passed on to `get_run_info` method
+        get_run_info_kwargs: {
+            gaps_tar_bases: [
+                '/data/exp/IceCube/{year}/filtered/level2/{date}/Run{run:08d}_GapsTxt.tar',
+                '/data/exp/IceCube/{year}/filtered/level2/{date}/Run{run:08d}/Run{run:08d}_GapsTxt.tar',
+            ],
+            gaps_txt_base: '/data/exp/IceCube/{year}/filtered/level2/{date}/Run{run:08d}/*_gaps.txt',
+        }
+
+    Exp_level2_IC86_2019:
+        in_file_pattern: '/data/exp/IceCube/{year}/filtered/level2/{month:02d}{day:02d}/Run{run_number:08d}/Level2pass2_IC86.{year}_data_Run{run_number:08d}_Subrun00000000_XXXXXXXX.i3.zst'
+
+        # This needs to use the {year} field if automatic year selection is used
+        exp_dataset_run_glob: '/data/exp/IceCube/{year}/filtered/level2/{month:02d}{day:02d}/Run????????'
+
+        exp_dataset_grl_paths: [
+            '/data/exp/IceCube/2019/filtered/level2/IC86_2019_GoodRunInfo.txt',
+        ]
+        season: 'IC86_2019'
+
+        # keyword arguments that are passed on to `get_run_info` method
+        get_run_info_kwargs: {
+            gaps_tar_bases: [
+                '/data/exp/IceCube/{year}/filtered/level2/{date}/Run{run:08d}_GapsTxt.tar',
+                '/data/exp/IceCube/{year}/filtered/level2/{date}/Run{run:08d}/Run{run:08d}_GapsTxt.tar',
+            ],
+            gaps_txt_base: '/data/exp/IceCube/{year}/filtered/level2/{date}/Run{run:08d}/*_gaps.txt',
+        }
+
+    Exp_level2_IC86_2020:
+        in_file_pattern: '/data/exp/IceCube/{year}/filtered/level2/{month:02d}{day:02d}/Run{run_number:08d}/Level2pass2_IC86.{year}_data_Run{run_number:08d}_Subrun00000000_XXXXXXXX.i3.zst'
+
+        # This needs to use the {year} field if automatic year selection is used
+        exp_dataset_run_glob: '/data/exp/IceCube/{year}/filtered/level2/{month:02d}{day:02d}/Run????????'
+
+        exp_dataset_grl_paths: [
+            '/data/exp/IceCube/2020/filtered/level2/IC86_2020_GoodRunInfo.txt',
+        ]
+        season: 'IC86_2020'
+
+        # keyword arguments that are passed on to `get_run_info` method
+        get_run_info_kwargs: {
+            gaps_tar_bases: [
+                '/data/exp/IceCube/{year}/filtered/level2/{date}/Run{run:08d}_GapsTxt.tar',
+                '/data/exp/IceCube/{year}/filtered/level2/{date}/Run{run:08d}/Run{run:08d}_GapsTxt.tar',
+            ],
+            gaps_txt_base: '/data/exp/IceCube/{year}/filtered/level2/{date}/Run{run:08d}/*_gaps.txt',
+        }
+
+
+# -------------------------------------------------------------
+# Define environment information shared across processing steps
+# -------------------------------------------------------------
+job_template: job_templates/cvmfs_python.sh
+script_name: general_i3_processing.py
+python_user_base_cpu: /data/user/mhuennefeld/DNN_reco/virtualenvs/tensorflow_gpu_py3-v4.2.1
+python_user_base_gpu: /data/user/mhuennefeld/DNN_reco/virtualenvs/tensorflow_gpu_py3-v4.2.1
+cuda_home: /data/ana/PointSource/DNNCascade/utils/cuda/cuda-10.1
+
+# add optional additions to the LD_LIBRARY_PATH
+# Note: '{ld_library_path_prepends}' is the default which does not add anything
+ld_library_path_prepends: '{ld_library_path_prepends}'
+
+# Defines environment variables that are set from python
+set_env_vars_from_python: {
+    'TF_DETERMINISTIC_OPS': '1',
+}
+
+#-----------------------------------------------
+# Define I3Traysegments for each processing step
+#-----------------------------------------------
+
+# a list of processing steps. Each processing step contains
+# information on the python and cvmfs environment as well as
+# a list of I3TraySegments/Modules that will be added to the I3Tray.
+# Any options defined in these nested dictionaries will supersede the
+# ones defined globally in this config.
+processing_steps: [
+
+    # -----------------
+    # Processing step 1
+    # -----------------
+    {
+        # Define environment for this processing step
+        cvmfs_python: py3-v4.2.1,
+        icetray_metaproject: icetray/v1.5.1,
+
+        # define a list of tray segments to run
+        tray_segments: [
+            {
+                # delete the key "I3MCTree" from the i3 file
+                ModuleClass: 'Delete',
+                ModuleKwargs: {Keys: [I3MCPESeriesMapWithoutNoise]},
+            },
+        ],
+    },
+]
+
+#--------------------
+# File output options
+#--------------------
+
+# write output as i3 files via the I3Writer
+write_i3: True
+write_i3_kwargs: {
+
+    # only write these stream types,
+    # i.e ['Q', 'P', 'I', 'S', 'M', 'm', 'W', 'X']
+    'i3_streams': ['Q', 'P', 'I', 'S', 'M', 'm', 'W', 'X'],
+}
+
+# write output as hdf5 files via the I3HDFWriter
+write_hdf5: False
+write_hdf5_kwargs: {
+
+    # sub event streams to write
+    'SubEventStreams': ['InIceSplit'],
+
+    # HDF keys to write (in addition to the ones in tray.context['HDF_keys'])
+    # Note: added tray segments should add outputs that should be written
+    # to hdf5 to the tray context.
+    'Keys': [],
+}

@@ -761,13 +761,17 @@ def main(
     )
 
     if dagman or pbs or osg:
-        scratch_subfolder = "{}_{}".format(
-            config["script_name"].replace(".py", ""),
-            config["config_base_name"].replace(".yaml", ""),
-        )
-        scratch_folder = os.path.join(
-            config["processing_scratch"], scratch_subfolder
-        )
+
+        def get_scratch_folder(counter):
+            return os.path.join(
+                config["processing_scratch"],
+                config["config_base_name"] + f"_{counter:04d}",
+            )
+
+        counter = 0
+        while os.path.exists(get_scratch_folder(counter)):
+            counter += 1
+        scratch_folder = get_scratch_folder(counter)
 
         if not os.path.isdir(scratch_folder):
             os.makedirs(scratch_folder)
