@@ -121,7 +121,6 @@ def input_exists(param_dict: dict, run_number: int) -> bool:
 
     # set additional checks to false
     param_dict_cpy["filter_corrupted_files"] = False
-    param_dict_cpy["merge_weights"] = False
     param_dict_cpy["exp_dataset_merge"] = False
     if "sframes_to_load" in param_dict_cpy:
         param_dict_cpy.pop("sframes_to_load")
@@ -362,7 +361,8 @@ def write_job_shell_scripts(param_dict: dict, templates: List) -> str:
     # create job files for each processing step
 
     # SECONDS is a bash special variable that returns the seconds since set.
-    wrapper_content = textwrap.dedent(
+    wrapper_content = "#!/bin/bash"
+    wrapper_content += textwrap.dedent(
         """
         # Shell-script wrapper to execute indidividual steps
 

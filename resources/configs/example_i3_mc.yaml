@@ -173,9 +173,6 @@ processing_steps: [
         cvmfs_python: py3-v4.2.1,
         icetray_metaproject: icetray/v1.5.1,
 
-        # keep track of number of merged files and update weights if they exist
-        merge_weights: True,
-
         # define a list of tray segments to run
         tray_segments: [
             {

@@ -3,6 +3,7 @@ Helper-functions for file utilities
 """
 from icecube import dataio, icetray
 from typing import List
+import math
 
 
 def file_is_readable(file_name):
@@ -103,27 +104,47 @@ def get_number_of_frames(file_name):
     return frame_counter
 
 
-def get_total_weight_n_files(file_names):
+def get_total_weight_n_files(file_names, assume_single_file=False):
     """Get the total number of files merged together.
 
-    This is the n_files parameter for weighting.
+    This computes the n_files parameter for weighting.
 
-    Warning: this breaks down if a file does not have any frame with a
-    weights key! Make sure
+    Note: this method checks for previously written "W" frames in which
+    meta information is saved on the number of processed/merges files.
+    If this information is not found, an error is raised unless
+    `assume_single_file` is set to True. In this case, it is assumed
+    that the inputs all consist of individual runs without any previous
+    merging and that no previous meta information has been written.
 
     Parameters
     ----------
-    file_name : list of str
-        A list of input files.
+    file_names : list[str]
+        A list of file paths to the input files. Note: for correct counting
+        of total number of files when `assume_single_file` is set to  True,
+        this must only contain i3-files and no GCD files!
+    assume_single_file : bool, optional
+        If True and when no previous weights meta information is found,
+        it is assumed that the total number of n_files is simply the
+        number of input files.
 
     Returns
     -------
     int
         Number of frames. If None, then something is wrong with the file.
         For instance, it may be corrupt.
+    bool
+        True if meta information was found in the files, otherwise False.
+
+    Raises
+    ------
+    ValueError
+        if not weights meta information frame exists and `assume_single_file`
+        is set to False.
+        , or if `assume_single_file`
     """
 
     total_n_files = 0
+    found_at_least_one_w_frame = False
 
     for file_name in file_names:
         f = dataio.I3File(file_name)
@@ -131,15 +152,33 @@ def get_total_weight_n_files(file_names):
             fr = f.pop_frame()
             if "weights_meta_info" in fr:
                 total_n_files += fr["weights_meta_info"]["n_files"]
+                found_at_least_one_w_frame = True
                 break
             elif (
                 fr.Stop == icetray.I3Frame.Stream("W")
-                or fr.Stop == icetray.I3Frame.Physics
+                or fr.Stop == icetray.I3Frame.DAQ
             ):
-                raise ValueError("No weight meta data found!")
+                if assume_single_file:
+                    total_n_files = float("nan")
+                else:
+                    raise ValueError("No weight meta data found!")
         f.close()
 
-    return total_n_files
+    if math.isnan(total_n_files):
+        # safety check to see if any files contain weights meta information.
+        # This should only happen when files are first processed with the
+        # ic3-processing framework. Once previous meta information has been
+        # written, it's more likely that the assumption of no previous file
+        # merging may be broken.
+        if found_at_least_one_w_frame:
+            raise ValueError(
+                "Expected no input file to have weight meta information!"
+            )
+        else:
+            assert assume_single_file, "Something went wrong!"
+            total_n_files = len(file_names)
+
+    return total_n_files, found_at_least_one_w_frame
 
 
 class PartialFileProcessing(icetray.I3ConditionalModule):

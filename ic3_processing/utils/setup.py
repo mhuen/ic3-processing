@@ -154,21 +154,6 @@ def setup_job_and_config(cfg, run_number, scratch, verbose=True):
     if verbose:
         print("Found {} input files.".format(context["n_files"]))
 
-    # merge calculated weights and update n_files used in meta data
-    if "merge_weights" in cfg and cfg["merge_weights"]:
-        # get total number of files
-        if verbose:
-            print("Computing total of n_files...")
-
-        context["total_n_files"] = file_utils.get_total_weight_n_files(infiles)
-        if verbose:
-            print(
-                "Merging weights with a total of n_files = "
-                "{} over {} input files".format(
-                    context["total_n_files"], context["n_files"]
-                )
-            )
-
     # merge experimental livetime and update meta data in X-frame
     if "exp_dataset_merge" in cfg and cfg["exp_dataset_merge"]:
         # get livetime information from all files
@@ -184,6 +169,30 @@ def setup_job_and_config(cfg, run_number, scratch, verbose=True):
                     context["n_files"],
                 )
             )
+        context["merge_weights"] = False
+
+    # if it's not experimental data, it must be simulation.
+    # In this case, keep track of the number of input files.
+    else:
+        # get total number of files
+        if verbose:
+            print("Computing total of n_files...")
+
+        (
+            context["total_n_files"],
+            context["weights_meta_info_exists"],
+        ) = file_utils.get_total_weight_n_files(
+            infiles, assume_single_file=True
+        )
+
+        if verbose:
+            print(
+                "Merging weights with a total of n_files = "
+                "{} over {} input files".format(
+                    context["total_n_files"], context["n_files"]
+                )
+            )
+        context["merge_weights"] = True
 
     # get GCD file for exp data run
     if "gcd" in cfg and cfg["gcd"] == "GET_GCD_FROM_GRL":
@@ -205,7 +214,7 @@ def setup_job_and_config(cfg, run_number, scratch, verbose=True):
 
     # get output file destination
     if scratch:
-        outfile = os.path.basename(cfg["final"].format(**cfg))
+        outfile = os.path.basename(cfg["out_file_pattern"].format(**cfg))
     else:
         outfile = os.path.join(
             cfg["data_folder"],

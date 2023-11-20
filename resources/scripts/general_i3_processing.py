@@ -1,15 +1,10 @@
 import timeit
 import click
-import warnings
 
 from I3Tray import I3Tray
 from icecube import icetray, hdfwriter
 
-try:
-    from ic3_labels.weights.segments import UpdateMergedWeights
-except ImportError as e:
-    warnings.warn(f"Could not import ic3_labels: {e}.")
-    warnings.warn("Continuing without support weight merging")
+from ic3_labels.weights.segments import AddWeightMetaData, UpdateMergedWeights
 
 
 from ic3_processing.utils.exp_data import livetime
@@ -76,10 +71,6 @@ def main(cfg, run_number, scratch):
 
             kwargs[key] = value
 
-        # print(f'Adding tray "{module_class}" with the following keys:')
-        # for key, value in kwargs.items():
-        #     print(f"{key}:\t\t\t{value}")
-
         tray.Add(
             module_class,
             settings["ModuleClass"].split(".")[-1] + "_{:05d}".format(i),
@@ -89,7 +80,25 @@ def main(cfg, run_number, scratch):
     # -----------------------------------------------------------
     # keep track of merged files and update weights if they exist
     # -----------------------------------------------------------
-    if "merge_weights" in cfg and cfg["merge_weights"]:
+    if context["merge_weights"]:
+        # Official simulation sets save the n_event_per_run information
+        # in keys such as I3MCWeightDict or CorsikaWeightMap. However,
+        # there are some older custom datasets that lack this information.
+        if "dataset_n_events_per_run" in cfg:
+            n_evets_per_run = cfg["dataset_n_events_per_run"]
+        else:
+            n_evets_per_run = -1
+
+        if not context["weights_meta_info_exists"]:
+            # check if "AddWeightMetaData" was already added to the I3Tray
+            if "AddWeightMetaData" not in tray.TrayInfo().modules_in_order:
+                tray.AddModule(
+                    AddWeightMetaData,
+                    "AddWeightMetaData",
+                    NFiles=tray.context["ic3_processing"]["total_n_files"],
+                    NEventsPerRun=n_evets_per_run,
+                )
+
         tray.AddModule(
             UpdateMergedWeights,
             "UpdateMergedWeights",

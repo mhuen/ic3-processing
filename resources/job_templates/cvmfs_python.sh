@@ -74,6 +74,10 @@ else
     JOB_RC=$?
     echo 'Job finished with Exit Code: ' $JOB_RC
     if [ $JOB_RC -eq 0 ] || [ "$KEEP_CRASHED_FILES" = "True" ]; then
+
+        # create output folder
+        mkdir -p {output_folder}
+
         if [ "$WRITE_HDF5" = "True" ]; then
             cp {final_out_scratch}.hdf5 {output_folder}
         fi
