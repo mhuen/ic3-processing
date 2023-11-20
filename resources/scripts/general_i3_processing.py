@@ -65,6 +65,9 @@ def main(cfg, run_number, scratch):
                     for context_key in context_keys:
                         value = value[context_key]
 
+                elif value == "<config>":
+                    value = cfg
+
                 else:
                     # expand with parameters in config
                     value = value.format(**cfg)
@@ -150,6 +153,9 @@ def main(cfg, run_number, scratch):
     tray.AddModule("TrashCan", "the can")
     tray.Execute()
     tray.Finish()
+
+    usage = tray.Usage()
+    print(usage)
 
     end_time = timeit.default_timer()
     print("Duration: {:5.3f}s".format(end_time - start_time))
