@@ -529,6 +529,26 @@ def write_job_files(
             param_dict.update(config)
             param_dict.update(dataset_dict)
 
+            # provide more useful errors for missing required variable
+            if "data_type" not in param_dict:
+                raise KeyError(
+                    "The `data_type` field must be defined in the the config."
+                )
+
+            allowed_data_types = [
+                "exp",
+                "nugen",
+                "corsika",
+                "muongun",
+                "misc",
+                "non-i3",
+            ]
+            if param_dict["data_type"].lower() not in allowed_data_types:
+                raise ValueError(
+                    f"Data type {param_dict['data_type']} is not understood! "
+                    f"Must be one of: {allowed_data_types}"
+                )
+
             # now update parameters from cycler
             for name, value in zip(param_names, param_values):
                 param_dict[name] = value
@@ -584,50 +604,52 @@ def write_job_files(
 
             # iterate through runs
             for run_num in runs:
+                param_dict_i = deepcopy(param_dict)
+
                 # add output directory for this specific run number
-                param_dict = setup.add_run_folder_vars(
-                    cfg=param_dict, run_number=run_num
+                param_dict_i = setup.add_run_folder_vars(
+                    cfg=param_dict_i, run_number=run_num
                 )
 
                 # create sub directory for logs
-                param_dict["log_dir"] = os.path.join(
-                    param_dict["processing_folder"],
+                param_dict_i["log_dir"] = os.path.join(
+                    param_dict_i["processing_folder"],
                     "logs",
-                    param_dict["folder_pattern"].format(**param_dict),
+                    param_dict_i["folder_pattern"].format(**param_dict_i),
                 )
 
-                if not os.path.isdir(param_dict["log_dir"]):
-                    os.makedirs(param_dict["log_dir"])
+                if not os.path.isdir(param_dict_i["log_dir"]):
+                    os.makedirs(param_dict_i["log_dir"])
 
                 # create sub directory for jobs
-                param_dict["jobs_output"] = os.path.join(
-                    param_dict["processing_folder"],
+                param_dict_i["jobs_output"] = os.path.join(
+                    param_dict_i["processing_folder"],
                     "jobs",
-                    param_dict["folder_pattern"].format(**param_dict),
+                    param_dict_i["folder_pattern"].format(**param_dict_i),
                 )
-                if not os.path.isdir(param_dict["jobs_output"]):
-                    os.makedirs(param_dict["jobs_output"])
+                if not os.path.isdir(param_dict_i["jobs_output"]):
+                    os.makedirs(param_dict_i["jobs_output"])
 
                 # fill final output file string
-                param_dict = get_final_out_path(param_dict)
+                param_dict_i = get_final_out_path(param_dict_i)
 
                 if check_existing_output:
                     # Assume files already exist
                     already_exists = True
 
                     # Does the hdf5 file already exist?
-                    if param_dict["write_hdf5"]:
+                    if param_dict_i["write_hdf5"]:
                         if not os.path.isfile(
-                            "{}.hdf5".format(param_dict["final_out"])
+                            "{}.hdf5".format(param_dict_i["final_out"])
                         ):
                             already_exists = False
 
                     # Does the i3 file already exist?
-                    if param_dict["write_i3"]:
+                    if param_dict_i["write_i3"]:
                         if not os.path.isfile(
                             "{}.{}".format(
-                                param_dict["final_out"],
-                                param_dict["i3_ending"],
+                                param_dict_i["final_out"],
+                                param_dict_i["i3_ending"],
                             )
                         ):
                             already_exists = False
@@ -639,17 +661,17 @@ def write_job_files(
 
                 # only create job file if input files exist
                 if check_existing_input and not input_exists(
-                    param_dict=param_dict,
+                    param_dict=param_dict_i,
                     run_number=run_num,
                 ):
                     continue
 
                 # create directory for final output files
-                if not os.path.isdir(param_dict["output_folder"]):
-                    os.makedirs(param_dict["output_folder"])
+                if not os.path.isdir(param_dict_i["output_folder"]):
+                    os.makedirs(param_dict_i["output_folder"])
 
                 # write executable job shell scripts
-                script_path = write_job_shell_scripts(param_dict, templates)
+                script_path = write_job_shell_scripts(param_dict_i, templates)
 
                 # keep track of generated jobs
                 scripts.append(script_path)

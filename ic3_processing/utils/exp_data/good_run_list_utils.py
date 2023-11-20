@@ -590,7 +590,7 @@ def get_exp_dataset_jobs(config):
                         "month": month,
                         "day": day,
                         "gcd": gcd_file,
-                        "merge_input_files": subrun_files,
+                        "in_file_pattern": subrun_files,
                         "exp_dataset_livetime": livetime,
                         "exp_dataset_start_times": start_times,
                         "exp_dataset_end_times": end_times,

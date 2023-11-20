@@ -80,7 +80,7 @@ def main(cfg, run_number, scratch):
     # -----------------------------------------------------------
     # keep track of merged files and update weights if they exist
     # -----------------------------------------------------------
-    if context["merge_weights"]:
+    if cfg["data_type"] != "exp":
         # Official simulation sets save the n_event_per_run information
         # in keys such as I3MCWeightDict or CorsikaWeightMap. However,
         # there are some older custom datasets that lack this information.

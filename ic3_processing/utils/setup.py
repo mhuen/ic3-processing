@@ -155,12 +155,15 @@ def setup_job_and_config(cfg, run_number, scratch, verbose=True):
         print("Found {} input files.".format(context["n_files"]))
 
     # merge experimental livetime and update meta data in X-frame
-    if "exp_dataset_merge" in cfg and cfg["exp_dataset_merge"]:
+    if cfg["data_type"] == "exp":
         # get livetime information from all files
         if verbose:
             print("Collecting exp livetime info...")
 
-        cfg = livetime.collect_exp_livetime_data(infiles, cfg)
+        if not (
+            "exp_dataset_run_glob" in cfg and "exp_dataset_livetime" in cfg
+        ):
+            cfg = livetime.collect_exp_livetime_data(infiles, cfg)
 
         if verbose:
             print(
@@ -169,11 +172,10 @@ def setup_job_and_config(cfg, run_number, scratch, verbose=True):
                     context["n_files"],
                 )
             )
-        context["merge_weights"] = False
 
     # if it's not experimental data, it must be simulation.
     # In this case, keep track of the number of input files.
-    else:
+    elif cfg["data_type"].lower() != "non-i3":
         # get total number of files
         if verbose:
             print("Computing total of n_files...")
@@ -192,7 +194,6 @@ def setup_job_and_config(cfg, run_number, scratch, verbose=True):
                     context["total_n_files"], context["n_files"]
                 )
             )
-        context["merge_weights"] = True
 
     # get GCD file for exp data run
     if "gcd" in cfg and cfg["gcd"] == "GET_GCD_FROM_GRL":

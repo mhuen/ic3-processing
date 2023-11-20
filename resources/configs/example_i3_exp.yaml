@@ -70,7 +70,9 @@ out_dir_pattern: '{data_type}/{season}/'
 out_file_pattern: '{data_type}_{season}_{run_number:08d}'
 folder_pattern: 'Run{run_number:08d}'
 folder_offset: 0
+n_jobs_per_folder: 1000
 gcd: DUMMY_FAKE_GCD
+data_type: 'exp'
 
 runs_to_ignore: [
     # Standard Candle Runs
@@ -84,7 +86,6 @@ exp_dataset_filter: [
     ['ActiveStrings', '==', 86],
     ['ActiveInIce', '>=', 5030],
 ]
-data_type: 'exp'
 
 cycler:
     # we don't actually use the cycler...
