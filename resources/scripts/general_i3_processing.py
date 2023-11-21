@@ -1,3 +1,5 @@
+# Note: this file must unfortunately be python 2.7 compatible!
+from __future__ import print_function, division
 import timeit
 import click
 
@@ -77,7 +79,9 @@ def main(cfg, run_number, scratch):
         tray.Add(
             module_class,
             settings["ModuleClass"].split(".")[-1] + "_{:05d}".format(i),
-            **kwargs,
+            # fmt: off [avoid trailing comma for <= py 3.6 compatibility]
+            **kwargs
+            # fmt: on [avoid trailing comma for <= py 3.6 compatibility]
         )
 
     # -----------------------------------------------------------
@@ -136,7 +140,9 @@ def main(cfg, run_number, scratch):
             "EventWriter",
             filename="{}.{}".format(context["outfile"], cfg["i3_ending"]),
             Streams=i3_streams,
-            **cfg["write_i3_kwargs"],
+            # fmt: off [avoid trailing comma for <= py 3.6 compatibility]
+            **cfg["write_i3_kwargs"]
+            # fmt: on [avoid trailing comma for <= py 3.6 compatibility]
         )
 
     if cfg["write_hdf5"]:
@@ -144,9 +150,11 @@ def main(cfg, run_number, scratch):
         tray.AddSegment(
             hdfwriter.I3HDFWriter,
             "hdf",
-            Output=f'{context["outfile"]}.hdf5',
+            Output="{}.hdf5".format(context["outfile"]),
             Keys=keys + tray.context["ic3_processing"]["HDF_Keys"],
-            **cfg["write_hdf5_kwargs"],
+            # fmt: off [avoid trailing comma for <= py 3.6 compatibility]
+            **cfg["write_hdf5_kwargs"]
+            # fmt: on [avoid trailing comma for <= py 3.6 compatibility]
         )
     # --------------------------------------------------
 

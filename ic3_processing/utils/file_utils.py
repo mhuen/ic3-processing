@@ -1,8 +1,10 @@
 """
+Note: this file must unfortunately be python 2.7 compatible!
+
 Helper-functions for file utilities
 """
+from __future__ import print_function, division
 from icecube import dataio, icetray
-from typing import List
 import math
 
 
@@ -33,9 +35,7 @@ def file_is_readable(file_name):
     return frame_counter
 
 
-def filter_corrupted_files(
-    infiles: List[str], verbose: bool = True
-) -> List[str]:
+def filter_corrupted_files(infiles, verbose=True):
     """Select non-corrupted files from a given list
 
     Parameters
@@ -59,7 +59,7 @@ def filter_corrupted_files(
         count_i = file_is_readable(file_name)
         if count_i is None:
             if verbose:
-                print(f"Found possibly corrupt file: {file_name}")
+                print("Found possibly corrupt file: {}".format(file_name))
         else:
             frame_cnt += count_i
             filtered_infiles.append(file_name)

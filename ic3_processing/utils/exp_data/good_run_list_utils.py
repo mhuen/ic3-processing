@@ -579,7 +579,9 @@ def get_exp_dataset_jobs(config):
                         year=year,
                         date=date,
                         run_id=run_num,
-                        **get_run_info_kwargs,
+                        # fmt: off [avoid trailing comma for <= py 3.6]
+                        **get_run_info_kwargs
+                        # fmt: on [avoid trailing comma for <= py 3.6]
                     )
 
                     total_livetime += livetime

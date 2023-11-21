@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+# requires = ["setuptools>=61.0"]  # Note: unfortunately need python >=2.7
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -13,7 +13,7 @@ authors = [
 maintainers = [
     { name = "Mirco Huennefeld", email = "mirco.huennefeld@tu-dortmund.de" },
 ]
-requires-python = ">=3.7"
+# requires-python = ">=3.7"  # Note: unfortunately need python >=2.7
 
 dependencies = [
     "numpy",
@@ -25,6 +25,8 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.5",
+    "Programming Language :: Python :: 3.6",
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
@@ -56,7 +58,7 @@ version = {attr = "ic3_processing.__version__"}
 
 [tool.black]
 line-length = 79
-target-version = ["py38"]
+target-version = ["py35", "py36", "py37", "py38", "py39", "py310", "py311"]
 
 [tool.ruff]
 # select = ["ALL"]
@@ -73,6 +75,7 @@ ignore = [
     "T20",    # flake8-print
     "TCH",    # flake8-type-checking
     "S101",   # assert-used
+    "COM812", # trailing comma to not insert after **kwargs, which is a syntax error prior to py3.6
     ]
 line-length = 79
 target-version = "py38"

@@ -1,3 +1,5 @@
+# Note: this file must unfortunately be python 2.7 compatible!
+from __future__ import print_function, division
 import os
 import importlib
 import warnings
@@ -13,14 +15,14 @@ try:
 except ImportError as e:
     warnings.warn(
         (
-            f"Could not import ic3_processing or icecube: {e}.",
+            "Could not import ic3_processing or icecube: {}.".format(e),
             "Continuing without optional support for i3 IO.",
         ),
         ImportWarning,
     )
 
 
-def add_run_folder_vars(cfg: dict, run_number: int) -> dict:
+def add_run_folder_vars(cfg, run_number):
     """Add variables regarding the output folder to the cfg.
 
     Parameters
@@ -53,7 +55,7 @@ def add_run_folder_vars(cfg: dict, run_number: int) -> dict:
     if n_per_folder not in [1, 10, 100, 1000, 10000]:
         raise ValueError(
             "Number of output files per folder (`n_jobs_per_folder`) must be "
-            f"one of [1, 10, 100, 1000, 10000], but is {n_per_folder}!"
+            "one of [1, 10, 100, 1000, 10000], but is {}!".format(n_per_folder)
         )
     cfg["run_number"] = run_number
     cfg["folder_num_pre_offset"] = cfg["run_number"] // n_per_folder
@@ -128,7 +130,9 @@ def setup_job_and_config(cfg, run_number, scratch, verbose=True):
 
         if len(infiles_i) == 0:
             raise IOError(
-                f"No input files found for pattern: {pattern.format(**cfg)}!"
+                "No input files found for pattern: {}!".format(
+                    pattern.format(**cfg)
+                )
             )
 
         infiles.extend(infiles_i)
@@ -226,7 +230,7 @@ def setup_job_and_config(cfg, run_number, scratch, verbose=True):
 
     output_dir = os.path.dirname(outfile)
     if output_dir and not os.path.isdir(output_dir):
-        print(f"Creating output directory: \n    {output_dir}")
+        print("Creating output directory: \n    {}".format(output_dir))
         os.makedirs(output_dir)
 
     context["infiles"] = infiles
