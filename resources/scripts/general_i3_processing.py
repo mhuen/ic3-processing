@@ -87,8 +87,9 @@ def main(cfg, run_number, scratch):
 
         # start timer if specified
         if "ModuleTimer" in settings and settings["ModuleTimer"]:
-            tray.Add(tray_timer.TimerStart, timerName=name + "_timer")
-            tray.context["ic3_processing"]["HDF_keys"].append("Duration")
+            tray.Add(tray_timer.TimerStart, TimerName=name + "_timer")
+            tray.context["ic3_processing"]["HDF_keys"].append("DurationQ")
+            tray.context["ic3_processing"]["HDF_keys"].append("DurationP")
 
         # add module
         tray.Add(
@@ -101,7 +102,7 @@ def main(cfg, run_number, scratch):
 
         # stop timer if specified
         if "ModuleTimer" in settings and settings["ModuleTimer"]:
-            tray.Add(tray_timer.TimerStop, timerName=name + "_timer")
+            tray.Add(tray_timer.TimerStop, TimerName=name + "_timer")
 
     # -----------------------------------------------------------
     # keep track of merged files and update weights if they exist
