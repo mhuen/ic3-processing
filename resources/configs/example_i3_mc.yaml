@@ -137,6 +137,14 @@ set_env_vars_from_python: {
 # Tray context can be accessed via "context-->key".
 # For nested dictionaries it's possible to do: "context-->key.key2.key3"
 # The configuration dictionary of the job can be passed via "<config>"
+# Special keys for the tray_segments:
+#       ModuleClass: str
+#           The module/segment to run.
+#       ModuleKwargs: dict
+#           The parameters for the specified module.
+#       ModuleTimer: str
+#           If provided, a timer for this module will be added.
+#           Results of all timers are saved in the frame key "Duration".
 processing_steps: [
 
     # -----------------

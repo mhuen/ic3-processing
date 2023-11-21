@@ -11,6 +11,7 @@ from ic3_labels.weights.segments import AddWeightMetaData, UpdateMergedWeights
 
 from ic3_processing.utils.exp_data import livetime
 from ic3_processing.utils import setup
+from ic3_processing.modules.utils import tray_timer
 
 
 @click.command()
@@ -76,13 +77,31 @@ def main(cfg, run_number, scratch):
 
             kwargs[key] = value
 
+        if "OutputKey" in kwargs:
+            tray.context["ic3_processing"]["HDF_keys"].append(
+                kwargs["OutputKey"]
+            )
+
+        # get name of module under which it will be added to the tray
+        name = settings["ModuleClass"].split(".")[-1] + "_{:05d}".format(i)
+
+        # start timer if specified
+        if "ModuleTimer" in settings and settings["ModuleTimer"]:
+            tray.Add(tray_timer.TimerStart, timerName=name + "_timer")
+            tray.context["ic3_processing"]["HDF_keys"].append("Duration")
+
+        # add module
         tray.Add(
             module_class,
-            settings["ModuleClass"].split(".")[-1] + "_{:05d}".format(i),
+            name,
             # fmt: off [avoid trailing comma for <= py 3.6 compatibility]
             **kwargs
             # fmt: on [avoid trailing comma for <= py 3.6 compatibility]
         )
+
+        # stop timer if specified
+        if "ModuleTimer" in settings and settings["ModuleTimer"]:
+            tray.Add(tray_timer.TimerStop, timerName=name + "_timer")
 
     # -----------------------------------------------------------
     # keep track of merged files and update weights if they exist
@@ -147,11 +166,12 @@ def main(cfg, run_number, scratch):
 
     if cfg["write_hdf5"]:
         keys = cfg["write_hdf5_kwargs"].pop("Keys")
+        keys += tray.context["ic3_processing"]["HDF_keys"]
         tray.AddSegment(
             hdfwriter.I3HDFWriter,
             "hdf",
             Output="{}.hdf5".format(context["outfile"]),
-            Keys=keys + tray.context["ic3_processing"]["HDF_Keys"],
+            Keys=[k for k in set(keys)],
             # fmt: off [avoid trailing comma for <= py 3.6 compatibility]
             **cfg["write_hdf5_kwargs"]
             # fmt: on [avoid trailing comma for <= py 3.6 compatibility]
@@ -162,11 +182,16 @@ def main(cfg, run_number, scratch):
     tray.Execute()
     tray.Finish()
 
-    usage = tray.Usage()
-    print(usage)
+    print("\nUsage:")
+    print("------")
+    msg = "    systime: {:7.2f} | usertime {:7.2f} | ncall: {:5d} | {}"
+    for entry in tray.Usage():
+        key = entry.key()
+        usage = entry.data()
+        print(msg.format(usage.systime, usage.usertime, usage.ncall, key))
 
     end_time = timeit.default_timer()
-    print("Duration: {:5.3f}s".format(end_time - start_time))
+    print("\nDuration: {:5.3f}s".format(end_time - start_time))
 
 
 if __name__ == "__main__":
