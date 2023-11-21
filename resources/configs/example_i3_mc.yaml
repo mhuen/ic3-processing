@@ -134,6 +134,9 @@ set_env_vars_from_python: {
 # a list of I3TraySegments/Modules that will be added to the I3Tray.
 # Any options defined in these nested dictionaries will supersede the
 # ones defined globally in this config.
+# Tray context can be accessed via "context-->key".
+# For nested dictionaries it's possible to do: "context-->key.key2.key3"
+# The configuration dictionary of the job can be passed via "<config>"
 processing_steps: [
 
     # -----------------
@@ -204,7 +207,8 @@ write_hdf5_kwargs: {
     # sub event streams to write
     'SubEventStreams': ['InIceSplit'],
 
-    # HDF keys to write (in addition to the ones in tray.context['HDF_keys'])
+    # HDF keys to write (in addition to the ones in
+    # tray.context['ic3_processing']['HDF_keys'])
     # Note: added tray segments should add outputs that should be written
     # to hdf5 to the tray context.
     'Keys': [],
