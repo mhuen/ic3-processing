@@ -3,7 +3,7 @@
 import numpy as np
 from collections import deque
 
-from icecube import icetray
+from icecube import icetray, dataclasses
 
 
 class I3OrphanFrameDropper(icetray.I3ConditionalModule):
@@ -141,6 +141,10 @@ def filter_events(frame, filter_list):
             except AttributeError:
                 value = frame_obj[filter_dict["column"]]
 
+        # check if FilterMask object
+        if isinstance(value, dataclasses.I3FilterResult):
+            value = value.condition_passed
+
         # check if condition is passed
         if filter_dict["option"] == "greater_than":
             passed_cond = value > filter_dict["value"]
@@ -180,7 +184,51 @@ def filter_events(frame, filter_list):
     return False
 
 
-def filter_streams(frame, streams_to_remove=[]):
+def apply_l2_filter_mask(frame, filter_base_name):
+    """Discard events that did not pass the specified filter.
+
+    Parameters
+    ----------
+    frame : I3Frame
+        Current I3Frame.
+    filter_base_name : str
+        The name of the L2 filter to apply. Only events passing this
+        filter will be kept, others are discarded.
+        If only the base name of the filter is given, i.e. "MuonFilter"
+        instead of "MuonFilter_13", then the filter will be applied
+        for a filter "MuonFilter*" in the "FilterMask".
+
+    Returns
+    -------
+    bool
+        True if cascade or muon filter is passed.
+
+    Raises
+    ------
+    ValueError
+        If keys can't be found.
+    """
+    if "FilterMask" in frame:
+        f = frame["FilterMask"]
+    elif "QFilterMask" in frame:
+        f = frame["QFilterMask"]
+    else:
+        raise ValueError("No FilterMask in {!r}".format(frame))
+
+    filter_key = None
+    for key in f.keys():
+        if filter_base_name == key[: len(filter_base_name)]:
+            filter_key = key
+
+    if filter_key is None:
+        raise ValueError(
+            "Could not find {} in {!r}".format(filter_key, f.keys())
+        )
+
+    return f[filter_key].condition_passed
+
+
+def filter_streams(frame, streams_to_remove=[], streams_to_keep=[]):
     """Remove P-frames from specified streams
 
     Parameters
@@ -189,6 +237,8 @@ def filter_streams(frame, streams_to_remove=[]):
         The current P-frame.
     streams_to_remove : list[str], optional
         The list of physics sub-event streams to remove.
+    streams_to_keep : list, optional
+        The list of physics sub-event streams to keep.
 
     Returns
     -------
@@ -197,7 +247,14 @@ def filter_streams(frame, streams_to_remove=[]):
         one of the specified streams to remove. In this case, the
         frame will be discarded.
     """
-    if "I3EventHeader" in frame:
+    if streams_to_remove != [] and streams_to_keep != []:
+        raise ValueError(
+            "Only provide one of 'streams_to_remove' or 'streams_to_keep'!"
+        )
+
+    if frame.Stop == icetray.I3Frame.Physics:
         if frame["I3EventHeader"].sub_event_stream in streams_to_remove:
+            return False
+        if frame["I3EventHeader"].sub_event_stream not in streams_to_keep:
             return False
     return True

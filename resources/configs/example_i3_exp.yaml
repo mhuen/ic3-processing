@@ -1,6 +1,6 @@
 # Example config file to process Level 2 exp i3-files
 # This config will process exp data from runs of June 30th of years 2011-2020.
-# The processing in this example will only take events passing the EHEFilter
+# The processing in this example will only take events passing the HighQFilter
 #
 # Directory structure:
 #       At prompt of create_job_files.py a data_folder
@@ -297,9 +297,14 @@ processing_steps: [
         # define a list of tray segments to run
         tray_segments: [
             {
-                # delete the key "I3MCTree" from the i3 file
-                ModuleClass: 'Delete',
-                ModuleKwargs: {Keys: [I3MCPESeriesMapWithoutNoise]},
+                # Only keep events of the HighQFilter
+                ModuleClass: 'ic3_processing.modules.processing.filter_events.apply_l2_filter_mask',
+                ModuleKwargs: {filter_base_name: 'HighQFilter'},
+            },
+            {
+                # Discard orphan Q-frames
+                ModuleClass: 'ic3_processing.modules.processing.filter_events.I3OrphanFrameDropper',
+                ModuleKwargs: {OrphanFrameStream: 'Q'},
             },
         ],
     },
