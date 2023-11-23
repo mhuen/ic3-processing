@@ -180,24 +180,36 @@ def setup_job_and_config(cfg, run_number, scratch, verbose=True):
     # if it's not experimental data, it must be simulation.
     # In this case, keep track of the number of input files.
     elif cfg["data_type"].lower() != "non-i3":
-        # get total number of files
-        if verbose:
-            print("Computing total of n_files...")
+        if not ("n_files_is_n_runs" in cfg and cfg["n_files_is_n_runs"]):
+            # get total number of files
+            if verbose:
+                print("Computing total of n_files...")
 
-        (
-            context["total_n_files"],
-            context["weights_meta_info_exists"],
-        ) = file_utils.get_total_weight_n_files(
-            infiles, assume_single_file=True
-        )
-
-        if verbose:
-            print(
-                "Merging weights with a total of n_files = "
-                "{} over {} input files".format(
-                    context["total_n_files"], context["n_files"]
-                )
+            (
+                context["total_n_files"],
+                context["weights_meta_info_exists"],
+            ) = file_utils.get_total_weight_n_files(
+                infiles,
+                assume_single_file=True,
             )
+
+            if verbose:
+                print(
+                    "Merging weights with a total of n_files = "
+                    "{} over {} input files".format(
+                        context["total_n_files"], context["n_files"]
+                    )
+                )
+        else:
+            if verbose:
+                print(
+                    "Skipping calculation of n_runs. It is assumed that every "
+                    "input file corresponds to only a single run since the "
+                    "parameter 'n_files_is_n_runs' is set to true."
+                )
+
+            context["total_n_files"] = context["n_files"]
+            context["weights_meta_info_exists"] = False
 
     # get GCD file for exp data run
     if "gcd" in cfg and cfg["gcd"] == "GET_GCD_FROM_GRL":
