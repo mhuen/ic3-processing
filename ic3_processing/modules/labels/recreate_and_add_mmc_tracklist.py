@@ -163,9 +163,7 @@ def RerunProposal(
         InputMCTreeName=mctree_name + "_preMuonProp",
         OutputMCTreeName=mctree_name,
         If=lambda f: (not f.Has(mctree_name) or not f.Has("MMCTrackList")),
-        # fmt: off [avoid trailing comma for <= py 3.6 compatibility]
         **proposal_kwargs
-        # fmt: on [avoid trailing comma for <= py 3.6 compatibility]
     )
 
     # merge background trees into main I3MCTree
