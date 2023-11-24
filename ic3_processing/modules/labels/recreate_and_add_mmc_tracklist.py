@@ -18,6 +18,7 @@ def RerunProposal(
     merge_trees=[],
     fail_if_no_rng_found=True,
     random_service_class=None,
+    proposal_kwargs={},
 ):
     """Re-run PROPOSAl and add MMCTrackList and I3MCTree to frame
 
@@ -38,6 +39,8 @@ def RerunProposal(
         If no RNG state is found, an error will be raised if set to True.
     random_service_class : str, optional
         The name of the random service class.
+    proposal_kwargs : dict, optional
+        Additional keyword arguments passed on to PROPOSAL.
     """
 
     def prepare_repropagation(frame, mctree_name="I3MCTree"):
@@ -160,6 +163,9 @@ def RerunProposal(
         InputMCTreeName=mctree_name + "_preMuonProp",
         OutputMCTreeName=mctree_name,
         If=lambda f: (not f.Has(mctree_name) or not f.Has("MMCTrackList")),
+        # fmt: off [avoid trailing comma for <= py 3.6 compatibility]
+        **proposal_kwargs
+        # fmt: on [avoid trailing comma for <= py 3.6 compatibility]
     )
 
     # merge background trees into main I3MCTree
