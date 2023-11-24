@@ -58,7 +58,10 @@ version = {attr = "ic3_processing.__version__"}
 
 [tool.black]
 line-length = 79
-target-version = ["py35", "py36", "py37", "py38", "py39", "py310", "py311"]
+# technically, black does not support python2.
+# This is all python versions black knows of and gets
+# rid of the trailing comma bug
+target-version = ["py33", "py34", "py35", "py36", "py37", "py38", "py39", "py310", "py311"]
 
 [tool.ruff]
 # select = ["ALL"]

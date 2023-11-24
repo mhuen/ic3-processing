@@ -92,13 +92,7 @@ def main(cfg, run_number, scratch):
             tray.context["ic3_processing"]["HDF_keys"].append("DurationP")
 
         # add module
-        tray.Add(
-            module_class,
-            name,
-            # fmt: off [avoid trailing comma for <= py 3.6 compatibility]
-            **kwargs
-            # fmt: on [avoid trailing comma for <= py 3.6 compatibility]
-        )
+        tray.Add(module_class, name, **kwargs)
 
         # stop timer if specified
         if "ModuleTimer" in settings and settings["ModuleTimer"]:
@@ -160,9 +154,7 @@ def main(cfg, run_number, scratch):
             "EventWriter",
             filename="{}.{}".format(context["outfile"], cfg["i3_ending"]),
             Streams=i3_streams,
-            # fmt: off [avoid trailing comma for <= py 3.6 compatibility]
             **cfg["write_i3_kwargs"]
-            # fmt: on [avoid trailing comma for <= py 3.6 compatibility]
         )
 
     if cfg["write_hdf5"]:
@@ -173,9 +165,7 @@ def main(cfg, run_number, scratch):
             "hdf",
             Output="{}.hdf5".format(context["outfile"]),
             Keys=[k for k in set(keys)],
-            # fmt: off [avoid trailing comma for <= py 3.6 compatibility]
             **cfg["write_hdf5_kwargs"]
-            # fmt: on [avoid trailing comma for <= py 3.6 compatibility]
         )
     # --------------------------------------------------
 
