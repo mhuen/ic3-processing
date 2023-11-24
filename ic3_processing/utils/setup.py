@@ -48,6 +48,11 @@ def add_run_folder_vars(cfg, run_number):
     if "run_number_settings" in cfg:
         cfg.update(cfg["run_number_settings"][run_number])
 
+    if "n_runs_per_merge" in cfg:
+        factor = cfg["n_runs_per_merge"]
+    else:
+        factor = 1
+
     n_per_folder = cfg["n_jobs_per_folder"]
 
     # sanity check: only powers of 10 make sense here and usually it should be
@@ -61,6 +66,12 @@ def add_run_folder_vars(cfg, run_number):
     cfg["folder_num_pre_offset"] = cfg["run_number"] // n_per_folder
     cfg["folder_num"] = (
         cfg["folder_offset"] + cfg["run_number"] // n_per_folder
+    )
+    cfg["folder_num_pre_offset_n_merged"] = (
+        factor * cfg["run_number"]
+    ) // n_per_folder
+    cfg["folder_num_n_merged"] = (
+        cfg["folder_offset"] + (factor * cfg["run_number"]) // n_per_folder
     )
     cfg["folder_pattern"] = cfg["folder_pattern"].format(**cfg)
 

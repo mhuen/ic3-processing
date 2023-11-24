@@ -24,13 +24,19 @@
 #
 #               Where the run folder is given by:
 #               run_folder = folder_pattern.format(
-#                 folder_num = folder_offset + run_number // n_jobs_per_folder
-#                 folder_num_pre_offset = run_number // n_jobs_per_folder
+#                   folder_num=folder_num,
+#                   folder_num_pre_offset=folder_num_pre_offset,
+#                   folder_num_n_merged=folder_num_n_merged,
+#                   folder_num_pre_offset_n_merged=folder_num_pre_offset_n_merged,
+#                   **cfg
 #               )
 #
 #       The following variables are computed and can be used in input/output patterns
+#
 #       folder_num = folder_offset + run_number // n_jobs_per_folder
 #       folder_num_pre_offset = run_number // n_jobs_per_folder
+#       folder_num_n_merged = folder_offset + (n_runs_per_merge * run_number) // n_jobs_per_folder
+#       folder_num_pre_offset_n_merged = (n_runs_per_merge * run_number) // n_jobs_per_folder
 #
 
 #------------------------------
