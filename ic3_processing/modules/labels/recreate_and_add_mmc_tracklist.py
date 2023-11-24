@@ -128,13 +128,13 @@ def RerunProposal(
     # Re-run PROPOSAL
     if random_service_class is not None:
         # set the random service to the one created by the user
-        if random_service_class.lower() == "I3SPRNGRandomService":
+        if random_service_class == "I3SPRNGRandomService":
             randomService = phys_services.I3SPRNGRandomService(
                 seed=10000,
                 nstreams=200000000,
                 streamnum=100014318,
             )
-        elif random_service_class.lower() == "I3GSLRandomService":
+        elif random_service_class == "I3GSLRandomService":
             randomService = phys_services.I3GSLRandomService(seed=10000)
         else:
             raise ValueError(
