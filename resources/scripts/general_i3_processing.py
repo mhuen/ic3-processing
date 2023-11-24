@@ -54,28 +54,36 @@ def main(cfg, run_number, scratch):
         else:
             module_class = setup.load_class(settings["ModuleClass"])
 
+        # sanity check to make sure the user didn't have a typo
+        allowed_keys = ["ModuleClass", "ModuleKwargs", "ModuleTimer"]
+        for key in settings.keys():
+            if key not in allowed_keys:
+                msg = "The key '{}'' is not in the allowed keys: {}!"
+                raise KeyError(msg.format(key, allowed_keys))
+
         # dynamically replace values of the form
         #       context-->a.b.c
         # with tray.context[a][b][c]
         search_key = "context-->"
         kwargs = {}
-        for key, value in settings["ModuleKwargs"].items():
-            # dynamically replace key
-            if isinstance(value, str):
-                if search_key in value:
-                    context_keys = value.replace(search_key, "").split(".")
-                    value = tray.context
-                    for context_key in context_keys:
-                        value = value[context_key]
+        if "ModuleKwargs" in settings:
+            for key, value in settings["ModuleKwargs"].items():
+                # dynamically replace key
+                if isinstance(value, str):
+                    if search_key in value:
+                        context_keys = value.replace(search_key, "").split(".")
+                        value = tray.context
+                        for context_key in context_keys:
+                            value = value[context_key]
 
-                elif value == "<config>":
-                    value = cfg
+                    elif value == "<config>":
+                        value = cfg
 
-                else:
-                    # expand with parameters in config
-                    value = value.format(**cfg)
+                    else:
+                        # expand with parameters in config
+                        value = value.format(**cfg)
 
-            kwargs[key] = value
+                kwargs[key] = value
 
         if "OutputKey" in kwargs:
             tray.context["ic3_processing"]["HDF_keys"].append(
