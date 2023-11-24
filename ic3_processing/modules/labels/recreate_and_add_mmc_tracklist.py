@@ -17,6 +17,7 @@ def RerunProposal(
     mctree_name="I3MCTree",
     merge_trees=[],
     fail_if_no_rng_found=True,
+    random_service_class=None,
 ):
     """Re-run PROPOSAl and add MMCTrackList and I3MCTree to frame
 
@@ -35,6 +36,8 @@ def RerunProposal(
         A list of I3MCTrees to merge into the newly re-created one.
     fail_if_no_rng_found : bool, optional
         If no RNG state is found, an error will be raised if set to True.
+    random_service_class : str, optional
+        The name of the random service class.
     """
 
     def prepare_repropagation(frame, mctree_name="I3MCTree"):
@@ -123,12 +126,31 @@ def RerunProposal(
     )
 
     # Re-run PROPOSAL
-    try:
-        randomService = phys_services.I3SPRNGRandomService(
-            seed=10000, nstreams=200000000, streamnum=100014318
-        )
-    except AttributeError:
-        randomService = phys_services.I3GSLRandomService(seed=10000)
+    if random_service_class is not None:
+        # set the random service to the one created by the user
+        if random_service_class.lower() == "I3SPRNGRandomService":
+            randomService = phys_services.I3SPRNGRandomService(
+                seed=10000,
+                nstreams=200000000,
+                streamnum=100014318,
+            )
+        elif random_service_class.lower() == "I3GSLRandomService":
+            randomService = phys_services.I3GSLRandomService(seed=10000)
+        else:
+            raise ValueError(
+                "Did not understand random service class: {}".format(
+                    random_service_class
+                )
+            )
+    else:
+        # try and figure out by assuming that I3SPRNGRandomService will
+        # be used if it's available
+        try:
+            randomService = phys_services.I3SPRNGRandomService(
+                seed=10000, nstreams=200000000, streamnum=100014318
+            )
+        except AttributeError:
+            randomService = phys_services.I3GSLRandomService(seed=10000)
 
     tray.Add(
         segments.PropagateMuons,
