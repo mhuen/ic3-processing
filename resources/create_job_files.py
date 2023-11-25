@@ -458,6 +458,7 @@ def write_job_shell_scripts(param_dict: dict, templates: List) -> str:
     wrapper_content += "   echo '   ...    Not deleting directory as it still "
     wrapper_content += "contains files.'\n"
     wrapper_content += "fi\n"
+    wrapper_content += "exit $RET\n"
 
     # write wrapper shell script that consecutively calls each processing step
     script_path = os.path.join(param_dict["jobs_output"], f"job_{base}.sh")
