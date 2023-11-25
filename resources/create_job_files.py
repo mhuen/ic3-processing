@@ -449,14 +449,20 @@ def write_job_shell_scripts(param_dict: dict, templates: List) -> str:
         wrapper_content += f"rm {temp_file}*\n"
 
     # remove directory if empty
-    wrapper_content += "echo '   ... checking if temp_step_files is empty'\n"
-    wrapper_content += "lines=$(find temp_step_files/ -type f | wc -l)\n"
-    wrapper_content += "if [ $lines -eq 0 ]; then\n"
-    wrapper_content += "   echo '   ... removing directory temp_step_files'\n"
-    wrapper_content += "   rm -r temp_step_files\n"
+
+    wrapper_content += "echo '   ... checking if temp_step_files exist'\n"
+    wrapper_content += "if [ -d temp_step_files ]; then\n"
+    wrapper_content += "   echo '   ... checking if temp_step_files is empty'\n"
+    wrapper_content += "   lines=$(find temp_step_files/ -type f | wc -l)\n"
+    wrapper_content += "   if [ $lines -eq 0 ]; then\n"
+    wrapper_content += "      echo '   ... removing directory temp_step_files'\n"
+    wrapper_content += "      rm -r temp_step_files\n"
+    wrapper_content += "   else\n"
+    wrapper_content += "      echo '   ...    Not deleting directory as it still "
+    wrapper_content += "   contains files.'\n"
+    wrapper_content += "   fi\n"
     wrapper_content += "else\n"
-    wrapper_content += "   echo '   ...    Not deleting directory as it still "
-    wrapper_content += "contains files.'\n"
+    wrapper_content += "   echo '   ...    temp_files does not exist'\n"
     wrapper_content += "fi\n"
     wrapper_content += "exit $RET\n"
 
