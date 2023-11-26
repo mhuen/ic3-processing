@@ -36,6 +36,8 @@ def write_onejob_file(config, scratch_folder):
         lines.append("request_memory = {}".format(resources_cfg["memory"]))
     if resources_cfg["cpus"] is not None:
         lines.append("request_cpus = {}".format(resources_cfg["cpus"]))
+    if "disk" in resources_cfg and resources_cfg["disk"] is not None:
+        lines.append("request_disk = {}".format(resources_cfg["disk"]))
 
     # CUDA and other requirements
     requirement_line = "requirements ="
