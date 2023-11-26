@@ -100,6 +100,44 @@ def get_version() -> str:
     return version
 
 
+def output_exists(param_dict: dict) -> bool:
+    """Check if the output files already exist
+
+    Note that this currently only works for jobs with well defined output,
+    which currently encompasses i3-processing with the options `write_i3`
+    and `write_hdf5`.
+
+    Returns
+    -------
+    bool
+        True if both the i3 and hdf5 output file already exist.
+        False if only one or none of them already exist.
+    """
+    # get output for last processing step
+    last_step = len(param_dict["processing_steps"]) - 1
+    param_dict_i = get_config_for_step(param_dict, step=last_step)
+
+    # Assume files already exist
+    already_exists = True
+
+    # Does the hdf5 file already exist?
+    if param_dict_i["write_hdf5"]:
+        if not os.path.isfile("{}.hdf5".format(param_dict_i["final_out"])):
+            already_exists = False
+
+    # Does the i3 file already exist?
+    if param_dict_i["write_i3"]:
+        if not os.path.isfile(
+            "{}.{}".format(
+                param_dict_i["final_out"],
+                param_dict_i["i3_ending"],
+            )
+        ):
+            already_exists = False
+
+    return already_exists
+
+
 def input_exists(param_dict: dict, run_number: int) -> bool:
     """Check if input files exist for an individual job config.
 
@@ -222,7 +260,7 @@ def get_config_for_step(config: dict, step: int) -> dict:
         which defines the directory to which the yaml configuration
         and python scripts will be written to.
     step : int
-        The processing step
+        The processing step [zero based].
 
     Returns
     -------
@@ -451,13 +489,19 @@ def write_job_shell_scripts(param_dict: dict, templates: List) -> str:
 
     wrapper_content += "echo '   ... checking if temp_step_files exist'\n"
     wrapper_content += "if [ -d temp_step_files ]; then\n"
-    wrapper_content += "   echo '   ... checking if temp_step_files is empty'\n"
+    wrapper_content += (
+        "   echo '   ... checking if temp_step_files is empty'\n"
+    )
     wrapper_content += "   lines=$(find temp_step_files/ -type f | wc -l)\n"
     wrapper_content += "   if [ $lines -eq 0 ]; then\n"
-    wrapper_content += "      echo '   ... removing directory temp_step_files'\n"
+    wrapper_content += (
+        "      echo '   ... removing directory temp_step_files'\n"
+    )
     wrapper_content += "      rm -r temp_step_files\n"
     wrapper_content += "   else\n"
-    wrapper_content += "      echo '   ...    Not deleting directory as it still "
+    wrapper_content += (
+        "      echo '   ...    Not deleting directory as it still "
+    )
     wrapper_content += "   contains files.'\n"
     wrapper_content += "   fi\n"
     wrapper_content += "else\n"
@@ -639,31 +683,9 @@ def write_job_files(
                 # fill final output file string
                 param_dict_i = get_final_out_path(param_dict_i)
 
-                if check_existing_output:
-                    # Assume files already exist
-                    already_exists = True
-
-                    # Does the hdf5 file already exist?
-                    if param_dict_i["write_hdf5"]:
-                        if not os.path.isfile(
-                            "{}.hdf5".format(param_dict_i["final_out"])
-                        ):
-                            already_exists = False
-
-                    # Does the i3 file already exist?
-                    if param_dict_i["write_i3"]:
-                        if not os.path.isfile(
-                            "{}.{}".format(
-                                param_dict_i["final_out"],
-                                param_dict_i["i3_ending"],
-                            )
-                        ):
-                            already_exists = False
-
-                    # The files which are to be written,
-                    # already exist. So skip these files
-                    if already_exists:
-                        continue
+                # only create job file if outputs do not already exist
+                if check_existing_output and output_exists(param_dict_i):
+                    continue
 
                 # only create job file if input files exist
                 if check_existing_input and not input_exists(
