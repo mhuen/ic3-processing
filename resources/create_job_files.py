@@ -136,15 +136,14 @@ def input_exists(param_dict: dict, run_number: int) -> bool:
             scratch=False,
             verbose=False,
         )
+        # no input files found, therefore skip this job
+        if context["n_files"] < 1:
+            input_exists = False
     except KeyError:
         # no input files found, therefore skip this job
         input_exists = False
     except IOError:
         # no input files found, therefore skip this job
-        input_exists = False
-
-    # no input files found, therefore skip this job
-    if context["n_files"] < 1:
         input_exists = False
 
     return input_exists
