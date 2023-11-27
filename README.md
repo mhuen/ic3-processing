@@ -2,11 +2,27 @@
 
 General processing framework to facilitate handling of i3-files on the cluster.
 
+# Installation
+To install this project via pip for usage type
+
+    pip install git+https://github.com/mhuen/ic3-processing
+
+If you want to make modifications and help with development, first clone the repository
+
+    git clone https://github.com/mhuen/ic3-processing
+
+and then install it in editable mode
+
+    cd ic3-processing
+    pip install -e .
+
+You are encouraged to submit pull requests for your modifications here on github.
+
 # Usage
 
-Create executable job files via:
+Once installed, create executable job files via:
 
-    python create_job_files.py --dagman PATH/TO/YAML/FILE -d PATH/TO/OUTPUT
+    ic3_job_files --dagman PATH/TO/YAML/FILE -d PATH/TO/OUTPUT
 
 With the optional flags `--dagman` or `--osg`, files are generated to start
 a DAGMan, which will perform scheduling and submission to the NPX and grid.
@@ -47,7 +63,7 @@ for a particular processing step.
 
 The framework is primarily designed to facilitate processing of i3-files
 via the icetray framework including `I3TraySegment`s and `I3Module`s.
-A general python script `general_i3_processing.py` is provided that dynamically
+A general python script `general_i3_processing.py` (in `ic3_processing/cli/scripts`) is provided that dynamically
 adds modules, defined in the configuration yaml file, to the `I3Tray`.
 This python script requires the definition of a list of `tray_segments`
 in the `processing_steps` entry.
@@ -83,20 +99,26 @@ that can be included in the prescription of the workflow via the
 `tray_segments` entries in the configuration files. Modules that are very
 specific to an individual user should not be included in `ic3_processing`,
 but in a dedicated python package.
+The `cli` sub-directory (see next section) contains scripts
+required to generate job files from the command line.
 
-
-## Resources
-
+## CLI Commands
 Contains the scripts required to generate job files.
+After installation the available commands are
 
-- `create_job_files.py`:
+- `ic3_job_files`:
     This is the main script utilized to write executable job files based
     on a given configuration file.
     Usage:
     ```python create_job_files.py PATH/TO/YAML/FILE -d PATH/TO/OUTPUT```
     Consult `--help` for further options.
 
-- `process_local.py`:
+- `ic3_local`:
     This script can be used to process the previously created job files
     locally in parallel.
     Consult `--help` for further options.
+
+
+## Resources
+
+Contains example configuration files and bash scripts for job execution.
