@@ -50,6 +50,10 @@ Documentation = "https://github.com/mhuen/ic3-processing"
 "Bug Tracker" = "https://github.com/mhuen/ic3-processing/issues"
 Discussions = "https://github.com/mhuen/ic3-processing/discussions"
 
+[project.scripts]
+ic3_job_files = "ic3_processing.cli.create_job_files:main"
+ic3_local = "ic3_processing.cli.process_local:main"
+
 [tool.setuptools]
 packages = ["ic3_processing"]
 
