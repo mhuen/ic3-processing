@@ -301,6 +301,11 @@ def get_config_for_step(config: dict, step: int) -> dict:
             cfg_step["out_file_pattern"] + f"_step{step:04d}"
         )
         cfg_step["data_folder"] = "./temp_step_files"
+        if "write_i3" not in config["processing_steps"][step]:
+            cfg_step["write_i3"] = True
+        
+        if "write_hdf5" not in config["processing_steps"][step]:
+            cfg_step["write_hdf5"] = False
 
     # fill final output file string if run_number has already been filled
     if "run_number" in cfg_step:
