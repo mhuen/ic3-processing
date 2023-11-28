@@ -14,10 +14,9 @@ from copy import deepcopy
 
 from typing import List, Union
 
-from . import batch_processing
+from ic3_processing.cli import batch_processing
 
-
-from ..utils import setup
+from ic3_processing.utils import setup
 
 try:
     from ic3_processing.utils.exp_data.good_run_list_utils import (

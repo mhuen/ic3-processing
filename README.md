@@ -110,7 +110,7 @@ After installation the available commands are
     This is the main script utilized to write executable job files based
     on a given configuration file.
     Usage:
-    ```python create_job_files.py PATH/TO/YAML/FILE -d PATH/TO/OUTPUT```
+    ```ic3_job_files PATH/TO/YAML/FILE -d PATH/TO/OUTPUT```
     Consult `--help` for further options.
 
 - `ic3_local`:
