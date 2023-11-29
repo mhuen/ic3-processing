@@ -461,7 +461,7 @@ def write_job_shell_scripts(param_dict: dict, templates: List) -> str:
         echo &&
         echo '=========================================' &&
         echo '==> Successfully processed all steps! <==' &&
-        echo '=========================================' &&
+        echo '========================================='
 
         RET=$?
         if [ $RET -ne 0 ] ; then
