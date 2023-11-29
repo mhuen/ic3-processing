@@ -510,7 +510,7 @@ def write_job_shell_scripts(param_dict: dict, templates: List) -> str:
     wrapper_content += "   contains files.'\n"
     wrapper_content += "   fi\n"
     wrapper_content += "else\n"
-    wrapper_content += "   echo '   ...    temp_files does not exist'\n"
+    wrapper_content += "   echo '   ...    temp_step_files does not exist'\n"
     wrapper_content += "fi\n"
     wrapper_content += "exit $RET\n"
 
