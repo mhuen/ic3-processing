@@ -14,8 +14,7 @@ from copy import deepcopy
 
 from typing import List, Union
 
-import batch_processing
-
+from ic3_processing.cli import batch_processing
 
 from ic3_processing.utils import setup
 

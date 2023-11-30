@@ -1,6 +1,6 @@
 __version_major__ = 0
-__version_minor__ = 0
-__version_patch__ = 1
+__version_minor__ = 1
+__version_patch__ = 0
 __version_info__ = "-dev"
 
 __version__ = "{}.{}.{}{}".format(
