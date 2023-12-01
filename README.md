@@ -24,7 +24,7 @@ You are encouraged to submit pull requests for your modifications here on github
 
 Once installed, create executable job files via:
 
-    ic3_job_files --dagman PATH/TO/YAML/FILE -d PATH/TO/OUTPUT
+    ic3_create_job_files --dagman PATH/TO/YAML/FILE -d PATH/TO/OUTPUT
 
 With the optional flags `--dagman` or `--osg`, files are generated to start
 a DAGMan, which will perform scheduling and submission to the NPX and grid.
@@ -108,14 +108,14 @@ required to generate job files from the command line.
 Contains the scripts required to generate job files.
 After installation the available commands are
 
-- `ic3_job_files`:
+- `ic3_create_job_files`:
     This is the main script utilized to write executable job files based
     on a given configuration file.
     Usage:
-    ```ic3_job_files PATH/TO/YAML/FILE -d PATH/TO/OUTPUT```
+    ```ic3_create_job_files PATH/TO/YAML/FILE -d PATH/TO/OUTPUT```
     Consult `--help` for further options.
 
-- `ic3_local`:
+- `ic3_process_local`:
     This script can be used to process the previously created job files
     locally in parallel.
     Consult `--help` for further options.

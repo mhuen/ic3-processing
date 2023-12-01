@@ -302,7 +302,7 @@ def get_config_for_step(config: dict, step: int) -> dict:
         cfg_step["data_folder"] = "./temp_step_files"
         if "write_i3" not in config["processing_steps"][step]:
             cfg_step["write_i3"] = True
-        
+
         if "write_hdf5" not in config["processing_steps"][step]:
             cfg_step["write_hdf5"] = False
 
@@ -373,7 +373,14 @@ def write_sub_steps(config: dict) -> List:
             yaml.dump(dict(cfg_step), yaml_file, default_flow_style=False)
 
         # read template for this processing step
-        with open(cfg_step["job_template"]) as f:
+        job_template_f = os.path.join(SCRIPT_FOLDER, cfg_step["job_template"])
+        if not os.path.exists(job_template_f):
+            # default assumption is that the script is given as a relative
+            # path to the templates within ic3_processing.
+            # If this is not the case, assume the path is an absolute path
+            job_template_f = cfg_step["job_template"]
+
+        with open(job_template_f) as f:
             templates.append(f.read())
 
     return templates
