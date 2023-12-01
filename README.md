@@ -1,3 +1,5 @@
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/mhuen/ic3-processing/master.svg)](https://results.pre-commit.ci/latest/github/mhuen/ic3-processing/master)
+
 # ic3-processing
 
 General processing framework to facilitate handling of i3-files on the cluster.
