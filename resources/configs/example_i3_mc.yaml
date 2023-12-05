@@ -15,13 +15,13 @@
 #
 #       out_dir_pattern:
 #
-#               run_folder:
+#               folder_pattern:
 #                       out_file_pattern + '.' + i3_ending
 #                       out_file_pattern + '.hdf5'
 #
 #
 #               Where the run folder is given by:
-#               run_folder = folder_pattern.format(
+#               folder_pattern = folder_pattern.format(
 #                   folder_num=folder_num,
 #                   folder_num_pre_offset=folder_num_pre_offset,
 #                   folder_num_n_merged=folder_num_n_merged,
