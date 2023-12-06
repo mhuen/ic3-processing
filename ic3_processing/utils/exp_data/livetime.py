@@ -60,6 +60,7 @@ def collect_exp_livetime_data(file_names, cfg, key="ExpLivetime"):
     cfg["exp_dataset_start_times"] = merge_start_times
     cfg["exp_dataset_end_times"] = merge_end_times
     cfg["exp_dataset_run_list"] = merge_run_list
+    cfg["exp_dataset_merge"] = True
     return cfg
 
 
