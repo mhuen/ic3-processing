@@ -30,8 +30,8 @@ class AddSnowStormParameterDict(icetray.I3ConditionalModule):
             names = []
             for name in frame["SnowstormParametrizations"]:
                 if name == "HoleIceForward_Unified":
-                    names.append("HoleIceForward_Unified_00")
-                    names.append("HoleIceForward_Unified_01")
+                    names.append("HoleIceForward_Unified_p0")
+                    names.append("HoleIceForward_Unified_p1")
                 else:
                     names.append(name)
 
