@@ -31,11 +31,21 @@ class AddPseudePhysicsFrames(icetray.I3ConditionalModule):
         """
         icetray.I3ConditionalModule.__init__(self, context)
         self.AddOutBox("OutBox")
+        self.AddParameter("DatasetID", "DatasetID for I3EventHeader")
         self.AddParameter("RunID", "RunID for I3EventHeader")
+        self.AddParameter(
+            "MaxRunsPerDataset",
+            "Maximum number of runs for the dataset.",
+            10000,
+        )
 
     def Configure(self):
+        self.dataset_id = self.GetParameter("DatasetID")
+        self.max_runs_per_dataset = self.GetParameter("MaxRunsPerDataset")
         self.run_id = self.GetParameter("RunID")
         self.event_id = 0
+
+        assert self.run_id < self.max_runs_per_dataset
 
     def DAQ(self, frame):
         """Add a pseudo physics frame after a DAQ frame
@@ -51,7 +61,9 @@ class AddPseudePhysicsFrames(icetray.I3ConditionalModule):
 
         # create pseudo event header
         event_header = dataclasses.I3EventHeader()
-        event_header.run_id = self.run_id
+        event_header.run_id = (
+            self.dataset_id * self.max_runs_per_dataset + self.run_id
+        )
         event_header.event_id = self.event_id
         event_header.sub_event_id = 0
         event_header.sub_run_id = 0
