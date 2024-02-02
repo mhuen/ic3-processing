@@ -40,9 +40,9 @@ class AddPseudePhysicsFrames(icetray.I3ConditionalModule):
         )
 
     def Configure(self):
-        self.dataset_id = self.GetParameter("DatasetID")
+        self.dataset_id = int(self.GetParameter("DatasetID"))
         self.max_runs_per_dataset = self.GetParameter("MaxRunsPerDataset")
-        self.run_id = self.GetParameter("RunID")
+        self.run_id = int(self.GetParameter("RunID"))
         self.event_id = 0
 
         assert self.run_id < self.max_runs_per_dataset
