@@ -129,12 +129,12 @@ class WriteEXPLivetimeData(icetray.I3ConditionalModule):
                 )
             )
 
-            # Check if livetimes match up to 0.001s or rtol of 1e-5
+            # Check if livetime match up to 0.001s or rtol of 1e-5
             if not np.allclose(
                 self._livetime, self._merge_livetime, atol=1e-3
             ):
                 raise ValueError(
-                    "Livetimes do not match up: {} != {}".format(
+                    "Livetime does not match up: {} != {}".format(
                         self._livetime, self._merge_livetime
                     )
                 )

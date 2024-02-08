@@ -18,8 +18,10 @@ eval `/cvmfs/icecube.opensciencegrid.org/${CVMFS_PYTHON}/setup.sh`
 export PYTHONUSERBASE={python_user_base}
 echo 'Using PYTHONUSERBASE: '${PYTHONUSERBASE}
 
+export ENV_SITE_PACKGES=$(find ${PYTHONUSERBASE}/lib* -maxdepth 2 -type d -name "site-packages")
+export PYTHONPATH=$ENV_SITE_PACKGES:$PYTHONPATH
 export PATH=$PYTHONUSERBASE/bin:$PATH
-export PYTHONPATH=$PYTHONUSERBASE/lib/python3.7/site-packages:$PYTHONPATH
+echo 'Using PYTHONPATH: '${PYTHONPATH}
 
 # set MPL backend for Matplotlib
 export MPLBACKEND=agg
