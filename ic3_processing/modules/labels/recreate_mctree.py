@@ -4,6 +4,7 @@ Adopted from:
 https://code.icecube.wisc.edu/projects/icecube/browser/IceCube/projects/
 sim-services/trunk/python/propagation.py
 """
+
 from icecube import icetray, dataclasses
 
 
@@ -20,9 +21,9 @@ def get_propagators():
     # dummy RNG
     cprop = I3CascadeMCService(phys_services.I3GSLRandomService(1))
     for pt in ["MuMinus", "MuPlus", "TauMinus", "TauPlus"]:
-        propagators[
-            getattr(dataclasses.I3Particle.ParticleType, pt)
-        ] = mu_tau_prop
+        propagators[getattr(dataclasses.I3Particle.ParticleType, pt)] = (
+            mu_tau_prop
+        )
     for pt in [
         "DeltaE",
         "Brems",
