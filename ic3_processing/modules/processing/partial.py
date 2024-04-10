@@ -1,11 +1,11 @@
 """
 Helper-functions for file utilities
 """
+
 from icecube import icetray
 
 
 class PartialFileProcessing(icetray.I3ConditionalModule):
-
     """Module to only process part of a file"""
 
     def __init__(self, ctx):

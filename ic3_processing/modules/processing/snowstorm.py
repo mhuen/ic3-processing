@@ -2,7 +2,6 @@ from icecube import icetray, dataclasses
 
 
 class AddSnowStormParameterDict(icetray.I3ConditionalModule):
-
     """Add SnowStorm Parameters as I3MapStringDouble"""
 
     def __init__(self, ctx):
