@@ -90,7 +90,6 @@ def write_exp_livetime_data(tray, name, cfg):
 
 
 class WriteEXPLivetimeData(icetray.I3ConditionalModule):
-
     """Module to write livetime of exp data to X-frame"""
 
     def __init__(self, ctx):

@@ -3,7 +3,6 @@ from icecube import dataclasses
 
 
 class AddPseudePhysicsFrames(icetray.I3ConditionalModule):
-
     """Add fake physics frames to i3 file
 
     This module may be used to add fake/pseudo physics frames

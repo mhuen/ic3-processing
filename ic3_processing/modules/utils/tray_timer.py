@@ -6,6 +6,7 @@ Thomas Kintscher.
 http://code.icecube.wisc.edu/projects/icecube/browser/IceCube/sandbox/
     kintscher/projects/toolbox/python/processing_time.py
 """
+
 import timeit
 
 import numpy as np

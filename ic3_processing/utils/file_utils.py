@@ -3,6 +3,7 @@ Note: this file must unfortunately be python 2.7 compatible!
 
 Helper-functions for file utilities
 """
+
 from __future__ import print_function, division
 from icecube import dataio, icetray
 import math
@@ -182,7 +183,6 @@ def get_total_weight_n_files(file_names, assume_single_file=False):
 
 
 class PartialFileProcessing(icetray.I3ConditionalModule):
-
     """Module to only process part of a file"""
 
     def __init__(self, ctx):
