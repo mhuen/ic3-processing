@@ -59,7 +59,7 @@ def combine_i3_particle(
 
 
 def create_cascade_classification_base_cascades(
-    tray, cfg, name="add_cascade_base"
+    tray, cscd_base_configs, name="add_cascade_base"
 ):
     """Add cascade classification model base cascades to frame
 
@@ -67,8 +67,9 @@ def create_cascade_classification_base_cascades(
     ----------
     tray : I3Tray
         The I3Tray to which the modules should be added.
-    cfg : dict
-        A dictionary with all configuration settings.
+    cscd_base_configs : dict or list of dict
+        A dictionary (or list of dictionaries) with all
+        configuration settings.
     name : str, optional
         Name of the tray module.
     """
@@ -91,7 +92,6 @@ def create_cascade_classification_base_cascades(
                 )
             frame[output_key] = labels
 
-    cscd_base_configs = cfg["config_list"]
     if isinstance(cscd_base_configs, dict):
         cscd_base_configs = [cscd_base_configs]
 
