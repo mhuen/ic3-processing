@@ -1,4 +1,4 @@
-from icecube import dataclasses
+from icecube import dataclasses, icetray
 
 
 def combine_i3_particle(
@@ -58,8 +58,11 @@ def combine_i3_particle(
     frame[output_name] = particle
 
 
+@icetray.traysegment
 def create_cascade_classification_base_cascades(
-    tray, cscd_base_configs, name="add_cascade_base"
+    tray,
+    name="add_cascade_base",
+    cscd_base_configs={},
 ):
     """Add cascade classification model base cascades to frame
 
@@ -67,11 +70,11 @@ def create_cascade_classification_base_cascades(
     ----------
     tray : I3Tray
         The I3Tray to which the modules should be added.
+    name : str, optional
+        Name of the tray module.
     cscd_base_configs : dict or list of dict
         A dictionary (or list of dictionaries) with all
         configuration settings.
-    name : str, optional
-        Name of the tray module.
     """
 
     def add_cascade_base(frame, config, output_key=None):
