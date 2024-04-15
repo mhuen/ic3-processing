@@ -56,3 +56,48 @@ def combine_i3_particle(
     particle.shape = getattr(dataclasses.I3Particle.ParticleShape, shape)
 
     frame[output_name] = particle
+
+
+def create_cascade_classification_base_cascades(
+    tray, cfg, name="add_cascade_base"
+):
+    """Add cascade classification model base cascades to frame
+
+    Parameters
+    ----------
+    tray : I3Tray
+        The I3Tray to which the modules should be added.
+    cfg : dict
+        A dictionary with all configuration settings.
+    name : str, optional
+        Name of the tray module.
+    """
+
+    def add_cascade_base(frame, config, output_key=None):
+        if config["I3ParticleBase"] in frame:
+            particle = frame[config["I3ParticleBase"]]
+            labels = dataclasses.I3MapStringDouble()
+            labels["VertexX"] = particle.pos.x
+            labels["VertexY"] = particle.pos.y
+            labels["VertexZ"] = particle.pos.z
+            labels["VertexTime"] = particle.time
+            labels["VertexX_unc"] = config["VertexX_unc"]
+            labels["VertexY_unc"] = config["VertexY_unc"]
+            labels["VertexZ_unc"] = config["VertexZ_unc"]
+            labels["VertexTime_unc"] = config["VertexTime_unc"]
+            if output_key is None:
+                output_key = (
+                    "cscd_classification_base_" + config["I3ParticleBase"]
+                )
+            frame[output_key] = labels
+
+    cscd_base_configs = cfg["config_list"]
+    if isinstance(cscd_base_configs, dict):
+        cscd_base_configs = [cscd_base_configs]
+
+    for i, cscd_base_config in enumerate(cscd_base_configs):
+        tray.AddModule(
+            add_cascade_base,
+            name + "_{:03d}".format(i),
+            config=cscd_base_config,
+        )
