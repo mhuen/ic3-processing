@@ -1,5 +1,11 @@
 # Note: this file must unfortunately be python 2.7 compatible!
 from __future__ import print_function, division
+import os
+import sys
+
+if "ENV_SITE_PACKGES" in os.environ:
+    sys.path.insert(1, os.environ["ENV_SITE_PACKGES"])
+
 import timeit
 import click
 
