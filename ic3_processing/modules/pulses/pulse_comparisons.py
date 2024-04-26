@@ -28,6 +28,9 @@ def select_DOM_pulses(tray, name, dom_list, pulse_key):
         key_name = pulse_key + "_S{:02d}D{:02d}".format(s, d)
         if key_name not in tray.context["ic3_processing"]["HDF_keys"]:
             tray.context["ic3_processing"]["HDF_keys"].append(key_name)
+            tray.context["ic3_processing"]["HDF_keys"].append(
+                key_name + "_Flags"
+            )
 
 
 @icetray.traysegment
@@ -82,13 +85,16 @@ def _select_DOM_pulses(frame, dom_list, pulse_key):
     dom_list = [(s, d) for s, d in dom_list]
     for s, d in dom_list:
         pulse_series = dataclasses.I3RecoPulseSeriesMap()
+        flag_series = dataclasses.I3MapKeyVectorInt()
         omkey = icetray.OMKey(s, d)
         if omkey in orig_pulse_series:
             pulse_series[omkey] = dataclasses.I3RecoPulseSeries(
                 orig_pulse_series[omkey]
             )
+            flag_series[omkey] = [p.flags for p in orig_pulse_series[omkey]]
 
         frame[pulse_key + "_S{:02d}D{:02d}".format(s, d)] = pulse_series
+        frame[pulse_key + "_S{:02d}D{:02d}_Flags".format(s, d)] = flag_series
 
 
 def _select_DOM_exclusions(frame, dom_list, tw_exclusion_keys=[]):
