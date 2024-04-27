@@ -37,8 +37,9 @@ class AddWeightedPrimary(MCLabelsBase):
         frame : I3Frame
             The current DAQ Frame
         """
-        primary = general.get_weighted_primary(
-            frame=frame,
-            mctree_name=self._i3mctree_name,
-        )
-        frame[self._output_key] = primary
+        if self._output_key not in frame:
+            primary = general.get_weighted_primary(
+                frame=frame,
+                mctree_name=self._i3mctree_name,
+            )
+            frame[self._output_key] = primary
