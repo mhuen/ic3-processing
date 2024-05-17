@@ -48,15 +48,10 @@ def gather_exclusion_data(
     # get total charge for excluded and non excluded pulses
     for key in [pulse_key, pulse_key + "_masked"]:
         total_charge = 0
-        pulse_series_map = frame[key]
-        if isinstance(
-            pulse_series_map,
-            (
-                dataclasses.I3RecoPulseSeriesMapMask,
-                dataclasses.I3RecoPulseSeriesMapUnion,
-            ),
-        ):
-            pulse_series_map = pulse_series_map.apply(frame)
+        pulse_series_map = dataclasses.I3RecoPulseSeriesMap.from_frame(
+            frame,
+            key,
+        )
 
         for omkey, pulse_series in pulse_series_map:
             total_charge += np.sum([p.charge for p in pulse_series])

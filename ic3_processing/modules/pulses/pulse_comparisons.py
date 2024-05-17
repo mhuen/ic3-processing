@@ -75,11 +75,10 @@ def _select_DOM_pulses(frame, dom_list, pulse_key):
     pulse_key : str
         The pulse key to work on.
     """
-    orig_pulse_series = frame[pulse_key]
-    if isinstance(
-        orig_pulse_series, dataclasses.I3RecoPulseSeriesMapMask
-    ) or isinstance(orig_pulse_series, dataclasses.I3RecoPulseSeriesMapUnion):
-        orig_pulse_series = orig_pulse_series.apply(frame)
+    orig_pulse_series = dataclasses.I3RecoPulseSeriesMap.from_frame(
+        frame,
+        pulse_key,
+    )
 
     # make sure we are comparing tuples to each other
     dom_list = [(s, d) for s, d in dom_list]
