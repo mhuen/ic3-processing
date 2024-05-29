@@ -69,11 +69,10 @@ class SLCPulseBugFix(icetray.I3ConditionalModule):
             Current i3 frame.
         """
         # get pulses
-        pulses = frame[self._pulse_key]
-        if isinstance(
-            pulses, dataclasses.I3RecoPulseSeriesMapMask
-        ) or isinstance(pulses, dataclasses.I3RecoPulseSeriesMapUnion):
-            pulses = pulses.apply(frame)
+        pulses = dataclasses.I3RecoPulseSeriesMap.from_frame(
+            frame,
+            self._pulse_key,
+        )
 
         # make copy of pulses
         pulses = dataclasses.I3RecoPulseSeriesMap(pulses)

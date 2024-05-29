@@ -27,12 +27,7 @@ def combine_pulses(frame, pulse_key, output_name, time_diff=2.0):
         single pulse. This pulse will have the total charge of both
         pulses and the time of the first pulse.
     """
-    pulses = frame[pulse_key]
-
-    if isinstance(pulses, dataclasses.I3RecoPulseSeriesMapMask) or isinstance(
-        pulses, dataclasses.I3RecoPulseSeriesMapUnion
-    ):
-        pulses = pulses.apply(frame)
+    pulses = dataclasses.I3RecoPulseSeriesMap.from_frame(frame, pulse_key)
 
     pulse_map = dataclasses.I3RecoPulseSeriesMap()
 
