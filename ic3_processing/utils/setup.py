@@ -21,6 +21,10 @@ except ImportError as e:
         ImportWarning,
     )
 
+DEFAULT_CFG_OPTIONS = {
+    "skip_meta_data_tracking": False,
+}
+
 
 def add_run_folder_vars(cfg, run_number):
     """Add variables regarding the output folder to the cfg.
@@ -112,6 +116,11 @@ def setup_job_and_config(cfg, run_number, scratch, verbose=True):
             cfg = yaml.full_load(stream)
     else:
         cfg = deepcopy(cfg)
+
+    # add defaults if they do not exist
+    for key, value in DEFAULT_CFG_OPTIONS.items():
+        if key not in cfg:
+            cfg[key] = value
 
     # update environment variables if provided
     if "set_env_vars_from_python" in cfg and verbose:
