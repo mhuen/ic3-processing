@@ -54,8 +54,8 @@ Discussions = "https://github.com/mhuen/ic3-processing/discussions"
 ic3_create_job_files = "ic3_processing.cli.create_job_files:main"
 ic3_process_local = "ic3_processing.cli.process_local:main"
 
-[tool.setuptools]
-packages = ["ic3_processing"]
+[tool.setuptools.packages.find]
+where = ["ic3_processing"]
 
 [tool.setuptools.dynamic]
 version = {attr = "ic3_processing.__version__"}
