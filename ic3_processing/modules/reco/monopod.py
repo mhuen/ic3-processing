@@ -581,7 +581,8 @@ def MonopodTaupedePreferredSegment(
         CalibrationErrata="CalibrationErrata",
         SaturationWindows="SaturationWindows",
         If=lambda frame: "SaturatedDOMs" not in frame
-        and "BrightDOMs" not in frame,
+        and "BrightDOMs" not in frame
+        and "DeepCoreDOMs" not in frame,
     )
     # this isn't placed in by default as SaturatedDOMs are excluded fully
     # here we decide later in the MonopodWrapper
