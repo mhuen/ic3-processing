@@ -34,8 +34,6 @@ from icecube.level3_filter_cascade.level3_Recos import (
 
 import os
 import copy
-import logging
-import pprint
 import numpy as np
 
 
@@ -138,11 +136,6 @@ def define_excluded(ibr, isat, itw, idc, **millipede_params):
         _mparams["ExcludedDOMs"].remove("SaturationWindows")
     if idc:
         _mparams["ExcludedDOMs"].remove("DeepCoreDOMs")
-    if ibr or isat or itw or idc:
-        logging.info(
-            "A flag --ibr or --isat or --itw or --idc was passed, the updated parameters are:"
-        )
-        pprint(_mparams)
     return _mparams
 
 
