@@ -499,7 +499,8 @@ def preferred(frame, i3_particle_keys, output_key="PreferredFit"):
 @traysegment
 def MonopodTaupedePreferredSegment(
     tray,
-    name="PreferredFit",
+    name,
+    output_key="PreferredFit",
     pulse_key="SplitInIcePulses",
     Seed="CombinedCascadeSeed_L3",
     idc=False,  # no DC for now
@@ -603,7 +604,7 @@ def MonopodTaupedePreferredSegment(
     # Run as a tray segment
     tray.Add(
         TaupedeWrapper,
-        name,
+        output_key,
         Seed=Seed,
         Minimizer="iMIGRAD",
         PhotonsPerBin=0,
@@ -614,13 +615,13 @@ def MonopodTaupedePreferredSegment(
         **millipede_params
     )
 
-    prefs = [name + "Taupede", name + "Monopod"]
+    prefs = [output_key + "Taupede", output_key + "Monopod"]
     tray.Add(
         preferred,
         i3_particle_keys=prefs,
-        output_key=name,
+        output_key=output_key,
         If=lambda f: len(prefs) > 0 and all([f.Has(_) for _ in prefs]),
     )
 
     tray.context["ic3_processing"]["HDF_keys"].extend(prefs)
-    tray.context["ic3_processing"]["HDF_keys"].append(name)
+    tray.context["ic3_processing"]["HDF_keys"].append(output_key)
