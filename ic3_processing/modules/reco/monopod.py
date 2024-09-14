@@ -583,6 +583,7 @@ def MonopodTaupedePreferredSegment(
         BadDomsList="BadDomsList",
         CalibrationErrata="CalibrationErrata",
         SaturationWindows="SaturationWindows",
+        If=lambda frame: not frame.Has("SaturatedDOMs"),
     )
     # this isn't placed in by default as SaturatedDOMs are excluded fully
     # here we decide later in the MonopodWrapper
