@@ -153,7 +153,7 @@ def Level2ReconstructionWrapper(tray, name, Pulses="SplitInIcePulses"):
     """
     tray.Add(
         "Rename",
-        "rename",
+        name + "Rename",
         Keys=[
             "SRTCleanedInIcePulses",
             "SRT" + Pulses,
@@ -171,7 +171,7 @@ def Level2ReconstructionWrapper(tray, name, Pulses="SplitInIcePulses"):
     )
     tray.Add(
         "I3SeededRTCleaning_RecoPulseMask_Module",
-        "seededrt",
+        name + "seededrt",
         InputHitSeriesMapName=Pulses,
         OutputHitSeriesMapName="SRT" + Pulses,
         STConfigService=seededRTConfig,
@@ -193,7 +193,7 @@ def Level2ReconstructionWrapper(tray, name, Pulses="SplitInIcePulses"):
     )
     tray.Add(
         I3SinglePandelFitter,
-        "SPEFitSingle",
+        name + "SPEFitSingle",
         fitname="SPEFitSingle",
         Pulses="SRT" + Pulses,
         seeds=["LineFit"],
@@ -201,7 +201,7 @@ def Level2ReconstructionWrapper(tray, name, Pulses="SplitInIcePulses"):
     )
     tray.Add(
         I3IterativePandelFitter,
-        "SPEFit2",
+        name + "SPEFit2",
         fitname="SPEFit2",
         Pulses="SRT" + Pulses,
         n_iterations=2,
@@ -214,14 +214,14 @@ def Level2ReconstructionWrapper(tray, name, Pulses="SplitInIcePulses"):
     """
     tray.Add(
         "I3CLastModule",
-        "CascadeLast_L2",
+        name + "CascadeLast_L2",
         Name="CascadeLast_L2",
         InputReadout=Pulses,
         If=lambda frame: "CascadeLast_L2" not in frame,
     )
     tray.Add(
         "I3CscdLlhModule",
-        "CascadeLlhVertexFit_L2",
+        name + "CascadeLlhVertexFit_L2",
         InputType="RecoPulse",  # ! Use reco pulses
         RecoSeries=Pulses,  # ! Name of input pulse series
         FirstLE=True,  # Default
@@ -501,7 +501,7 @@ def MonopodTaupedePreferredSegment(
     name,
     output_key="PreferredFit",
     pulse_key="SplitInIcePulses",
-    Seed="CombinedCascadeSeed_L3",
+    seed="CombinedCascadeSeed_L3",
     idc=False,  # no DC for now
     spline_table_dir=os.path.expandvars("$I3_DATA/photon-tables/splines"),
     bdthres=15,
@@ -551,16 +551,13 @@ def MonopodTaupedePreferredSegment(
 
     spline_table_dir = os.path.expandvars("$I3_DATA/photon-tables/splines")
 
-    ##################################################################
-    # Run
-    ##################################################################
-    # Note that this example illustrates two ways to use this code.  You can use the
-    # code as tray segment, or as 4 modules.
-
-    tray.Add(Level2ReconstructionWrapper, "level2reco", Pulses=pulse_key)
-    tray.Add(
-        Level3ReconstructionWrapper, "CombinedCascadeSeed_L3", Pulses=pulse_key
-    )
+    if seed == "CombinedCascadeSeed_L3":
+        tray.Add(Level2ReconstructionWrapper, "level2reco", Pulses=pulse_key)
+        tray.Add(
+            Level3ReconstructionWrapper,
+            "CombinedCascadeSeed_L3",
+            Pulses=pulse_key,
+        )
 
     tray.Add(
         mask_ic,
@@ -606,7 +603,7 @@ def MonopodTaupedePreferredSegment(
     tray.Add(
         TaupedeWrapper,
         output_key,
-        Seed=Seed,
+        Seed=seed,
         Minimizer="iMIGRAD",
         PhotonsPerBin=0,
         BrightsFit=False,
