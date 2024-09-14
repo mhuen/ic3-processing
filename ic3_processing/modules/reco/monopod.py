@@ -16,8 +16,7 @@ from icecube import photonics_service
 from icecube.STTools.seededRT.configuration_services import (
     I3DOMLinkSeededRTConfigurationService,
 )
-
-# from icecube import clast, cscd_llh
+from icecube import clast, cscd_llh  # noqa: F401
 from icecube.lilliput.segments import (
     I3SinglePandelFitter,
     I3IterativePandelFitter,
