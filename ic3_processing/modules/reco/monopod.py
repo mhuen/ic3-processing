@@ -446,7 +446,7 @@ def TaupedeWrapper(
         DeepCoreFit=DeepCoreFit,
         **millipede_params
     )
-    tray.Add(convert_to_tau_seed, inkey=monopod0, outkey=f"{name}_Seed")
+    tray.Add(convert_to_tau_seed, inkey=monopod0, outkey=f"{name}_TaupedeSeed")
 
     _mparams = define_excluded(
         BrightsFit,
@@ -458,7 +458,7 @@ def TaupedeWrapper(
     tray.Add(
         TaupedeFit,
         name + "Taupede",
-        Seed=f"{name}_Seed",
+        Seed=f"{name}_TaupedeSeed",
         StepL=10,
         StepT=5,
         StepD=2,
@@ -502,7 +502,7 @@ def MonopodTaupedePreferredSegment(
     output_key="PreferredFit",
     pulse_key="SplitInIcePulses",
     seed="CombinedCascadeSeed_L3",
-    idc=False,  # no DC for now
+    idc=True,  # include DeepCore
     spline_table_dir=os.path.expandvars("$I3_DATA/photon-tables/splines"),
     bdthres=15,
     icemodel="ftp-v1",
