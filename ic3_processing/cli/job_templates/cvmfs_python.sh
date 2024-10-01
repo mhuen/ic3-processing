@@ -57,7 +57,7 @@ then
             rm ${FINAL_OUT}.hdf5
         fi
         if [ "$WRITE_I3" = "True" ]; then
-            rm ${FINAL_OUT}.i3.bz2
+            rm ${FINAL_OUT}.${I3_ENDING}
         fi
         if [ -f "$FINAL_OUT" ]; then
             rm $FINAL_OUT
