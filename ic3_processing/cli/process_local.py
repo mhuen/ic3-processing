@@ -200,7 +200,6 @@ def output_exists(binary):
 @click.argument(
     "path",
     type=click.Path(exists=True, resolve_path=True),
-    help="Path to directory containing the binary job files.",
 )
 @click.option("-j", "--n_jobs", default=1, help="Number of parallel jobs")
 @click.option(
@@ -223,7 +222,35 @@ def output_exists(binary):
     default=True,
     help="If False, only run jobs for which the output files are missing",
 )
-def main(path, binary_pattern, n_jobs, log_path, resume, rerun):
+def main(
+    path,
+    binary_pattern="*.sh",
+    n_jobs=1,
+    log_path=None,
+    resume=False,
+    rerun=True,
+):
+    """Process binaries locally
+
+    Parameters:
+    -----------
+    path : str
+        Path to the directory where the binaries are located.
+    binary_pattern : str, optional
+        Pattern of the binaries to be processed.
+        Default is '*.sh'.
+    n_jobs : int, optional
+        Number of parallel jobs. Default is 1.
+    log_path : str, optional
+        Path to a directory where the stdout/stderr should be saved.
+        If None is provided, no logs are saved. Default is None.
+    resume : bool, optional
+        Resume a previous run with the log files. If set to True,
+        a `log_path` must be provided. Default is False.
+    rerun : bool, optional
+        If False, only run jobs for which the output files are missing.
+        Default is True.
+    """
     path = os.path.abspath(path)
 
     log_book = JobLogBook(n_jobs=n_jobs, log_dir=log_path)
