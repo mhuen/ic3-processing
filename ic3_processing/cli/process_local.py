@@ -170,8 +170,8 @@ def get_variable(file_path, variable):
         return None
 
 
-def output_exists(binary):
-    basename = os.path.basename(binary)
+def output_exists(binary, binary_pattern):
+    basename = os.path.basename(binary).replace(binary_pattern, "")
     out_dir = get_variable(binary, "OUT_DIR")
 
     # find the job file for the last step
@@ -264,7 +264,9 @@ def main(
     else:
         binaries = list(glob.glob(os.path.join(path, binary_pattern)))
         if not rerun:
-            binaries = [b for b in binaries if not output_exists(b)]
+            binaries = [
+                b for b in binaries if not output_exists(b, binary_pattern)
+            ]
         log_book.process(binaries)
 
 
