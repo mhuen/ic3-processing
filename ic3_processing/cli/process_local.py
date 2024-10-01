@@ -162,8 +162,46 @@ class JobLogBook(object):
         signal.signal(signal.SIGINT, exit_gracefully)
 
 
+def get_variable(file_path, variable):
+    with open(file_path, "r") as f:
+        for line in f:
+            if line.startswith(variable):
+                return line.split("=")[1].strip()
+        return None
+
+
+def output_exists(binary):
+    basename = os.path.basename(binary)
+    out_dir = get_variable(binary, "OUT_DIR")
+
+    # find the job file for the last step
+    job_steps = sorted(
+        glob.glob(os.path.join(out_dir, f"{basename}_step_*.sh"))
+    )
+    last_step = job_steps[-1]
+
+    final_out = get_variable(last_step, "FINAL_OUT")
+    i3_ending = get_variable(last_step, "I3_ENDING")
+    write_hdf5 = get_variable(last_step, "WRITE_HDF5")
+    write_i3 = get_variable(last_step, "WRITE_I3")
+
+    all_files_exist = True
+    if write_hdf5 == "True":
+        all_files_exist &= os.path.isfile(final_out + ".hdf5")
+    if write_i3 == "True":
+        all_files_exist &= os.path.isfile(final_out + f".{i3_ending}")
+    if not write_hdf5 and not write_i3:
+        all_files_exist &= os.path.isfile(final_out)
+
+    return all_files_exist
+
+
 @click.command()
-@click.argument("path", type=click.Path(exists=True, resolve_path=True))
+@click.argument(
+    "path",
+    type=click.Path(exists=True, resolve_path=True),
+    help="Path to directory containing the binary job files.",
+)
 @click.option("-j", "--n_jobs", default=1, help="Number of parallel jobs")
 @click.option(
     "-p", "--binary_pattern", default="*.sh", help="Pattern of the binaries"
@@ -175,8 +213,17 @@ class JobLogBook(object):
     type=click.Path(resolve_path=True),
     help="Path to a dir where the stdout/stderr should be saved",
 )
-@click.option("--resume/--no-resume", default=False)
-def main(path, binary_pattern, n_jobs, log_path, resume):
+@click.option(
+    "--resume/--no-resume",
+    default=False,
+    help="Resume a previous run with the log files.",
+)
+@click.option(
+    "--rerun/--no-rerun",
+    default=True,
+    help="If False, only run jobs for which the output files are missing",
+)
+def main(path, binary_pattern, n_jobs, log_path, resume, rerun):
     path = os.path.abspath(path)
 
     log_book = JobLogBook(n_jobs=n_jobs, log_dir=log_path)
@@ -186,9 +233,11 @@ def main(path, binary_pattern, n_jobs, log_path, resume):
         click.echo(
             "Resuming {} with max. {} parallel jobs!".format(path, n_jobs)
         )
-        log_book.resume(path)
+        log_book.resume(log_path)
     else:
         binaries = list(glob.glob(os.path.join(path, binary_pattern)))
+        if not rerun:
+            binaries = [b for b in binaries if not output_exists(b)]
         log_book.process(binaries)
 
 
