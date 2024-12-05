@@ -259,3 +259,22 @@ def filter_streams(frame, streams_to_remove=[], streams_to_keep=[]):
         if frame["I3EventHeader"].sub_event_stream not in streams_to_keep:
             return False
     return True
+
+
+def change_stream(frame, initial_stream, final_stream):
+    """Change the sub-event stream of the current frame
+
+    Parameters
+    ----------
+    frame : I3Frame
+        The current frame.
+    initial_stream : str
+        The initial sub-event stream.
+    final_stream : str
+        The final sub-event stream.
+    """
+    if frame["I3EventHeader"].sub_event_stream == initial_stream:
+        eh = dataclasses.I3EventHeader(frame["I3EventHeader"])
+        del frame["I3EventHeader"]
+        eh.sub_event_stream = final_stream
+        frame.Put("I3EventHeader", eh)
