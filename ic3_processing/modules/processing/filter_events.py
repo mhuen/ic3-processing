@@ -278,3 +278,46 @@ def change_stream(frame, initial_stream, final_stream):
         del frame["I3EventHeader"]
         eh.sub_event_stream = final_stream
         frame.Put("I3EventHeader", eh)
+
+
+class CopyToDAQFromPhyics(icetray.I3PacketModule):
+    def __init__(self, ctx):
+        icetray.I3PacketModule.__init__(self, ctx, icetray.I3Frame.DAQ)
+        self.AddOutBox("OutBox")
+        self.AddParameter(
+            "KeysToCopy",
+            "A dictionary of sub_event-_stream: [keys] to copy from "
+            "physics to DAQ frame.",
+            {},
+        )
+
+    def Configure(self):
+        """Configure Module."""
+        self.keys_copy = self.GetParameter("KeysToCopy")
+
+    def FramePacket(self, frames):
+        """Process frame packet."""
+
+        # get the DAQ frame
+        target_frame = None
+        for frame in frames:
+            if frame.Stop == icetray.I3Frame.DAQ:
+                target_frame = frame
+                break
+        if target_frame is None:
+            raise ValueError("No DAQ frame found in packet.")
+
+        for frame in frames:
+            if frame.Stop == icetray.I3Frame.Physics:
+                stream = frame["I3EventHeader"].sub_event_stream
+
+                if stream in self.keys_copy:
+                    for key in self.keys_copy[stream]:
+                        if target_frame.Has(key):
+                            raise ValueError(
+                                f"Key {key} already exists in DAQ frame."
+                            )
+                        target_frame[key] = frame[key]
+
+        for frame in frames:
+            self.PushFrame(frame)
