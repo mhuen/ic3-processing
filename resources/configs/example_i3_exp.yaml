@@ -276,6 +276,10 @@ cuda_home: /data/ana/PointSource/DNNCascade/utils/cuda/cuda-10.1
 # Note: '{ld_library_path_prepends}' is the default which does not add anything
 ld_library_path_prepends: '{ld_library_path_prepends}'
 
+# add optional python packages to import as a comma separated list
+# Note: '{python_package_imports}' is the default which does not add anything
+python_package_imports: '{python_package_imports}'
+
 # Defines environment variables that are set from python
 set_env_vars_from_python: {
     'TF_DETERMINISTIC_OPS': '1',
