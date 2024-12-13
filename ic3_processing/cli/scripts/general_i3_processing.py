@@ -6,6 +6,12 @@ import sys
 if "ENV_SITE_PACKAGES" in os.environ:
     sys.path.insert(1, os.environ["ENV_SITE_PACKAGES"])
 
+if "PYTHON_PACKAGE_IMPORTS" in os.environ:
+    import importlib
+
+    for package in os.environ["PYTHON_PACKAGE_IMPORTS"].split(","):
+        importlib.import_module(package)
+
 import timeit
 import click
 

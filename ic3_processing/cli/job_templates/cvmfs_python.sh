@@ -9,6 +9,7 @@ WRITE_I3={write_i3}
 CUDA_HOME={cuda_home}
 LD_LIBRARY_PATH_PREPENDS={ld_library_path_prepends}
 CVMFS_PYTHON={cvmfs_python}
+PYTHON_PACKAGE_IMPORTS={python_package_imports}
 
 
 # load environment
@@ -39,6 +40,12 @@ fi
 if [ "$(echo "$LD_LIBRARY_PATH_PREPENDS" | sed 's/^.\(.*\).$/\1/')" != "ld_library_path_prepends" ]; then
   echo 'Prepending to LD_LIBRARY_PATH: '$LD_LIBRARY_PATH_PREPENDS
   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH_PREPENDS:$LD_LIBRARY_PATH
+fi
+
+# add additional python package imports if we have them
+if [ "$(echo "$PYTHON_PACKAGE_IMPORTS" | sed 's/^.\(.*\).$/\1/')" != "python_package_imports" ]; then
+  echo 'Importing additional python packages: '$PYTHON_PACKAGE_IMPORTS
+  export PYTHON_PACKAGE_IMPORTS
 fi
 
 # start python script
