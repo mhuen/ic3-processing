@@ -315,7 +315,9 @@ class CopyToDAQFromPhyics(icetray.I3PacketModule):
                     for key in self.keys_copy[stream]:
                         if target_frame.Has(key):
                             raise ValueError(
-                                f"Key {key} already exists in DAQ frame."
+                                "Key {} already exists in DAQ frame.".format(
+                                    key
+                                )
                             )
                         target_frame[key] = frame[key]
 
