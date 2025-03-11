@@ -1,12 +1,30 @@
 from icecube import dataclasses, icetray
 
 
-def add_2_cascade_seed_keys(frame, **kwargs):
+def add_2_cascade_seed_keys(
+    frame,
+    seed_base,
+    additional_seeds=[],
+    seed_distances=[30],
+    add_reverse=False,
+    nside=None,
+    min_energy=500.0,
+    cluster_settings={},
+):
     from dnn_cascade_selection.utils.reconstruction import (
         add_2_cascade_model_seeds,
     )
 
-    add_2_cascade_model_seeds(frame=frame, **kwargs)
+    add_2_cascade_model_seeds(
+        frame=frame,
+        seed_base=seed_base,
+        additional_seeds=additional_seeds,
+        seed_distances=seed_distances,
+        add_reverse=add_reverse,
+        nside=nside,
+        min_energy=min_energy,
+        cluster_settings=cluster_settings,
+    )
 
 
 def combine_i3_particle(
