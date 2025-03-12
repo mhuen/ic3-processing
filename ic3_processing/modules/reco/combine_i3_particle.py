@@ -27,6 +27,23 @@ def add_2_cascade_seed_keys(
     )
 
 
+def extend_multi_cascade_seed(
+    frame,
+    seeds=[],
+    seed_distances=[30],
+    output_name="{base}_MultiSeeds",
+):
+    for base_name in seeds:
+        new_seed = dataclasses.I3MapStringDouble(frame[base_name])
+
+        for i, distance in enumerate(seed_distances):
+            if f"cascade_{i:05d}_distance" in new_seed:
+                continue
+            new_seed[f"cascade_{i:05d}_distance"] = distance
+            new_seed[f"cascade_{i:05d}_energy"] = new_seed["energy"] * 0.8
+        frame[output_name.format(base=base_name)] = new_seed
+
+
 def combine_i3_particle(
     frame,
     output_name,
