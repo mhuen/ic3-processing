@@ -32,9 +32,19 @@ def extend_multi_cascade_seed(
     seeds=[],
     seed_distances=[30],
     output_name="{base}_MultiSeeds",
+    remove_prefix="",
 ):
     for base_name in seeds:
         new_seed = dataclasses.I3MapStringDouble(frame[base_name])
+
+        if remove_prefix:
+            new_seed_ = dataclasses.I3MapStringDouble()
+            for key, value in new_seed.items():
+                if key.startswith(remove_prefix):
+                    new_seed_[key[len(remove_prefix) :]] = value
+                else:
+                    new_seed_[key] = value
+            new_seed = new_seed_
 
         for i, distance in enumerate(seed_distances):
             if f"cascade_{i:05d}_distance" in new_seed:
