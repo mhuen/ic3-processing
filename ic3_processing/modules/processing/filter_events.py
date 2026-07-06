@@ -1,5 +1,4 @@
-"""Helper functions to filter events and streams
-"""
+"""Helper functions to filter events and streams"""
 
 import numpy as np
 from collections import deque

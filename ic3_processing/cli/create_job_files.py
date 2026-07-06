@@ -410,8 +410,7 @@ def write_job_shell_scripts(param_dict: dict, templates: List) -> str:
 
     # SECONDS is a bash special variable that returns the seconds since set.
     wrapper_content = "#!/bin/bash"
-    wrapper_content += textwrap.dedent(
-        """
+    wrapper_content += textwrap.dedent("""
         # Shell-script wrapper to execute indidividual steps
 
         # Start Timer
@@ -423,8 +422,7 @@ def write_job_shell_scripts(param_dict: dict, templates: List) -> str:
         declare -a times
         times[0]=$SECONDS
         step_counter=1
-        """
-    )
+        """)
     wrapper_content += f"OUT_DIR={out_dir}\n\n"
     for i, template in enumerate(templates):
         # update parameters defined globally with parameters for
@@ -462,8 +460,7 @@ def write_job_shell_scripts(param_dict: dict, templates: List) -> str:
         wrapper_content += "times[$step_counter]=$SECONDS &&\n"
         wrapper_content += "((step_counter++)) &&\n\n"
 
-    wrapper_content += textwrap.dedent(
-        """
+    wrapper_content += textwrap.dedent("""
         echo &&
         echo '=========================================' &&
         echo '==> Successfully processed all steps! <==' &&
@@ -490,8 +487,7 @@ def write_job_shell_scripts(param_dict: dict, templates: List) -> str:
         echo
 
         echo Cleaning up intermediate files ...
-        """
-    )
+        """)
     for temp_file in temp_files:
         wrapper_content += f"echo '   ... removing {temp_file}*'\n"
         wrapper_content += f"rm {temp_file}*\n"

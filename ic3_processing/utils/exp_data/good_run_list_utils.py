@@ -5,6 +5,7 @@ Note: some functions are adopted from
 https://code.icecube.wisc.edu/projects/icecube/browser/IceCube/sandbox/
 ps_processing/trunk/resources/iceprod2_scripts/build_data_task_json.py
 """
+
 from __future__ import print_function, division
 import os
 import glob
@@ -13,7 +14,6 @@ import tarfile
 import re
 import numpy as np
 from icecube import dataclasses, dataio
-
 
 # Define columns in GRL file
 GRL_COLUMNS = [
