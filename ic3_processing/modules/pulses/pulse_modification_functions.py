@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""Helper functions to apply modifications to pulses
-"""
+"""Helper functions to apply modifications to pulses"""
+
 from icecube import dataclasses
 import numpy as np
 

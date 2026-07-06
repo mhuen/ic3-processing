@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""Helper functions to mask pulses
-"""
+"""Helper functions to mask pulses"""
+
 from ic3_data.ext_boost import get_valid_pulse_map as get_valid_pulse_map_cpp
 
 

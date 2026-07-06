@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""Helper functions to mask pulses
-"""
+"""Helper functions to mask pulses"""
+
 import numpy as np
 from icecube import dataclasses
 
