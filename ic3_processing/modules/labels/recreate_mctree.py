@@ -5,16 +5,16 @@ https://code.icecube.wisc.edu/projects/icecube/browser/IceCube/projects/
 sim-services/trunk/python/propagation.py
 """
 
-from icecube import icetray, dataclasses
+from icecube import dataclasses, icetray
 
 
 def get_propagators():
     """
     Set up a staple of propagators for muons, taus, and cascades.
     """
-    from icecube import sim_services, phys_services
-    from icecube.PROPOSAL import I3PropagatorServicePROPOSAL
+    from icecube import phys_services, sim_services
     from icecube.cmc import I3CascadeMCService
+    from icecube.PROPOSAL import I3PropagatorServicePROPOSAL
 
     propagators = sim_services.I3ParticleTypePropagatorServiceMap()
     mu_tau_prop = I3PropagatorServicePROPOSAL()

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from icecube import dataclasses, icetray
 import numpy as np
+from icecube import dataclasses, icetray
 
 
 class AddBrightDOMs(icetray.I3ConditionalModule):

@@ -4,9 +4,11 @@ Note: this file must unfortunately be python 2.7 compatible!
 Helper-functions for file utilities
 """
 
-from __future__ import print_function, division
-from icecube import dataio, icetray
+from __future__ import division, print_function
+
 import math
+
+from icecube import dataio, icetray
 
 
 def file_is_readable(file_name):

@@ -11,9 +11,8 @@ import timeit
 
 import numpy as np
 import scipy.optimize
-
-from icecube import dataclasses, icetray
 from I3Tray import NaN
+from icecube import dataclasses, icetray
 
 
 def benchmark(it=1000):

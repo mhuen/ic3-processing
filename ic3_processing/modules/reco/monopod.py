@@ -1,40 +1,44 @@
 """Script adopted from Tianlu Yuan's apply.py script to run monopod and taupede reconstructions"""
 
-from icecube.filterscripts import filter_globals
-from icecube.icetray import I3Units, I3Frame, traysegment
-from icecube import linefit, dataclasses
-from icecube.millipede import MonopodFit, TaupedeFit, HighEnergyExclusions
-from icecube.dataclasses import (
-    I3Particle,
-    I3Direction,
-    I3Position,
-    I3Constants,
-)
-from icecube import photonics_service
+import copy
 
-# for level 2
-from icecube.STTools.seededRT.configuration_services import (
-    I3DOMLinkSeededRTConfigurationService,
+# from icecube.level3_filter_muon.level3_SplitHiveSplitter import (
+#     SplitAndRecoHiveSplitter,
+# )
+import os
+
+import numpy as np
+from icecube import (  # noqa: F401
+    clast,
+    cscd_llh,
+    dataclasses,
+    linefit,
+    photonics_service,
 )
-from icecube import clast, cscd_llh  # noqa: F401
-from icecube.lilliput.segments import (
-    I3SinglePandelFitter,
-    I3IterativePandelFitter,
+from icecube.dataclasses import (
+    I3Constants,
+    I3Direction,
+    I3Particle,
+    I3Position,
 )
+from icecube.filterscripts import filter_globals
+from icecube.icetray import I3Frame, I3Units, traysegment
 
 # for level 3
 from icecube.level3_filter_cascade.level3_Recos import (
     CascadeLlhVertexFit,
     SPEFit,
 )
+from icecube.lilliput.segments import (
+    I3IterativePandelFitter,
+    I3SinglePandelFitter,
+)
+from icecube.millipede import HighEnergyExclusions, MonopodFit, TaupedeFit
 
-# from icecube.level3_filter_muon.level3_SplitHiveSplitter import (
-#     SplitAndRecoHiveSplitter,
-# )
-
-import os
-import copy
-import numpy as np
+# for level 2
+from icecube.STTools.seededRT.configuration_services import (
+    I3DOMLinkSeededRTConfigurationService,
+)
 
 
 ## pulse cleaning

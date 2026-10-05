@@ -1,10 +1,9 @@
-"""Helper functions to filter events and streams
-"""
+"""Helper functions to filter events and streams"""
 
-import numpy as np
 from collections import deque
 
-from icecube import icetray, dataclasses
+import numpy as np
+from icecube import dataclasses, icetray
 
 
 class I3OrphanFrameDropper(icetray.I3ConditionalModule):

@@ -1,17 +1,17 @@
 # Note: this file must unfortunately be python 2.7 compatible!
-from __future__ import print_function, division
-import os
-import importlib
-import warnings
+from __future__ import division, print_function
 
 import glob
+import importlib
+import os
+import warnings
 from copy import deepcopy
+
 import yaml
 
 try:
     from ic3_processing.utils import file_utils
-    from ic3_processing.utils.exp_data import livetime
-    from ic3_processing.utils.exp_data import good_run_list_utils
+    from ic3_processing.utils.exp_data import good_run_list_utils, livetime
 except ImportError as e:
     warnings.warn(
         (

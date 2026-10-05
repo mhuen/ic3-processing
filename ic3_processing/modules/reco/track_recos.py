@@ -1,8 +1,6 @@
 import os
 
-from icecube import dataclasses
-from icecube import icetray
-from icecube import spline_reco
+from icecube import dataclasses, icetray, spline_reco
 
 
 @icetray.traysegment

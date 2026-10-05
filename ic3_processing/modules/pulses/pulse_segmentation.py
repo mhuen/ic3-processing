@@ -1,5 +1,5 @@
-from icecube import dataclasses, icetray, simclasses
 from ic3_labels.labels.utils import general
+from icecube import dataclasses, icetray, simclasses
 
 from ic3_processing.modules.processing.filter_events import filter_events
 

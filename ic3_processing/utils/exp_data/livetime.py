@@ -1,5 +1,5 @@
 import numpy as np
-from icecube import icetray, dataclasses, dataio
+from icecube import dataclasses, dataio, icetray
 
 
 def collect_exp_livetime_data(file_names, cfg, key="ExpLivetime"):

@@ -1,5 +1,5 @@
-from icecube import dataclasses, icetray
 import numpy as np
+from icecube import dataclasses, icetray
 
 from ic3_processing.modules.pulses import pulse_modification_functions
 

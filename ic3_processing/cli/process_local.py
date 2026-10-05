@@ -1,9 +1,9 @@
-import os
-import subprocess
-import glob
-import signal
-import sys
 import copy
+import glob
+import os
+import signal
+import subprocess
+import sys
 
 import click
 

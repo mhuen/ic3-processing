@@ -4,7 +4,8 @@ I3MCTree_preMuonProp or I3MCTree.
 """
 
 import sys
-from icecube import icetray, dataclasses, simclasses, phys_services
+
+from icecube import dataclasses, icetray, phys_services, simclasses
 from icecube.icetray import i3logging
 from icecube.simprod import segments
 

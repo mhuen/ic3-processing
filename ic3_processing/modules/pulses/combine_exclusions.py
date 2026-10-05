@@ -1,5 +1,4 @@
 from ic3_data.ext_boost import combine_exclusions
-
 from icecube import dataclasses
 
 

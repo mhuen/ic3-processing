@@ -1,4 +1,4 @@
-from icecube import icetray, dataclasses
+from icecube import dataclasses, icetray
 
 
 @icetray.traysegment

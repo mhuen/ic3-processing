@@ -1,21 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import getpass
+import itertools
 import os
 import stat
 import string
 import textwrap
 import warnings
+from copy import deepcopy
+from typing import List, Union
 
 import click
 import yaml
-import getpass
-import itertools
-from copy import deepcopy
-
-from typing import List, Union
 
 from ic3_processing.cli import batch_processing
-
 from ic3_processing.utils import setup
 
 try:
@@ -410,8 +408,7 @@ def write_job_shell_scripts(param_dict: dict, templates: List) -> str:
 
     # SECONDS is a bash special variable that returns the seconds since set.
     wrapper_content = "#!/bin/bash"
-    wrapper_content += textwrap.dedent(
-        """
+    wrapper_content += textwrap.dedent("""
         # Shell-script wrapper to execute indidividual steps
 
         # Start Timer
@@ -423,8 +420,7 @@ def write_job_shell_scripts(param_dict: dict, templates: List) -> str:
         declare -a times
         times[0]=$SECONDS
         step_counter=1
-        """
-    )
+        """)
     wrapper_content += f"OUT_DIR={out_dir}\n\n"
     for i, template in enumerate(templates):
         # update parameters defined globally with parameters for
@@ -462,8 +458,7 @@ def write_job_shell_scripts(param_dict: dict, templates: List) -> str:
         wrapper_content += "times[$step_counter]=$SECONDS &&\n"
         wrapper_content += "((step_counter++)) &&\n\n"
 
-    wrapper_content += textwrap.dedent(
-        """
+    wrapper_content += textwrap.dedent("""
         echo &&
         echo '=========================================' &&
         echo '==> Successfully processed all steps! <==' &&
@@ -490,8 +485,7 @@ def write_job_shell_scripts(param_dict: dict, templates: List) -> str:
         echo
 
         echo Cleaning up intermediate files ...
-        """
-    )
+        """)
     for temp_file in temp_files:
         wrapper_content += f"echo '   ... removing {temp_file}*'\n"
         wrapper_content += f"rm {temp_file}*\n"

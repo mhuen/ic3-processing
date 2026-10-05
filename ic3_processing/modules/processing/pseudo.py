@@ -1,5 +1,4 @@
-from icecube import icetray
-from icecube import dataclasses
+from icecube import dataclasses, icetray
 
 
 class AddPseudePhysicsFrames(icetray.I3ConditionalModule):

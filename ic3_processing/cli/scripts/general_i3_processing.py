@@ -1,5 +1,6 @@
 # Note: this file must unfortunately be python 2.7 compatible!
-from __future__ import print_function, division
+from __future__ import division, print_function
+
 import os
 import sys
 
@@ -13,17 +14,15 @@ if "PYTHON_PACKAGE_IMPORTS" in os.environ:
         importlib.import_module(package)
 
 import timeit
+
 import click
-
 from I3Tray import I3Tray
-from icecube import icetray, hdfwriter
-
 from ic3_labels.weights.segments import AddWeightMetaData, UpdateMergedWeights
+from icecube import hdfwriter, icetray
 
-
-from ic3_processing.utils.exp_data import livetime
-from ic3_processing.utils import setup
 from ic3_processing.modules.utils import tray_timer
+from ic3_processing.utils import setup
+from ic3_processing.utils.exp_data import livetime
 
 
 @click.command()

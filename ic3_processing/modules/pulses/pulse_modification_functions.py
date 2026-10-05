@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-"""Helper functions to apply modifications to pulses
-"""
-from icecube import dataclasses
+"""Helper functions to apply modifications to pulses"""
+
 import numpy as np
+from icecube import dataclasses
 
 
 def shift_pulses(

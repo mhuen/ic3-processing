@@ -1,8 +1,7 @@
-from icecube import icetray
-
 from ic3_labels.labels.base_module import MCLabelsBase
 from ic3_labels.labels.utils import general
 from ic3_labels.weights.utils import get_weighted_primary
+from icecube import icetray
 
 
 @icetray.traysegment
